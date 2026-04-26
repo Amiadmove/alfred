@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alfred Travel — Partner Onboarding</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    input, textarea, select {
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #0F172A;
+      box-shadow: 0 0 0 3px rgba(15,23,42,0.08);
+    }
+    .step-enter { opacity: 0; transform: translateX(20px); }
+    .step-enter-active { opacity: 1; transform: translateX(0); transition: all 0.2s; }
+    .table-input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #FAFAFA;
+      color: #1E293B;
+    }
+    .table-input:focus {
+      outline: none;
+      border-color: #0F172A;
+      background: white;
+      box-shadow: 0 0 0 2px rgba(15,23,42,0.08);
+    }
+    .gbv-cell {
+      background: #F1F5F9;
+      color: #475569;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      text-align: right;
+      min-width: 90px;
+    }
+    thead th {
+      background: #0F172A;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child { border-radius: 0 8px 0 0; }
+    tbody tr:nth-child(even) td { background: #F8FAFC; }
+    tbody tr:hover td { background: #F0F9FF; }
+    tbody td { padding: 6px 8px; border-bottom: 1px solid #F1F5F9; }
+    tfoot td {
+      background: #0F172A;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 12px;
+    }
+    tfoot td:first-child { border-radius: 0 0 0 8px; }
+    tfoot td:last-child { border-radius: 0 0 8px 0; }
+  </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen" x-data="onboardingForm()" x-init="init()" x-cloak>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50" style="background:#1A1A1A; border-bottom:1px solid #2a2a2a;">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+      <img src="Alfred.svg" alt="Alfred Travel" class="h-8 w-auto" />
+      <div class="flex items-center gap-3">
+        <span class="text-xs hidden sm:block" style="color:#F5E6D3; opacity:0.6;">Auto-saved</span>
+        <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:#4ECDC4; color:#1A1A1A;">Step <span x-text="step"></span> of 4</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Step Progress -->
+  <div class="bg-white border-b border-slate-100 shadow-sm">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="flex">
+        <template x-for="(label, i) in stepLabels" :key="i">
+          <div class="flex-1 py-4 cursor-pointer group" @click="goToStep(i+1)">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all duration-200"
+                :class="step > i+1 ? 'bg-emerald-500 text-white' : step === i+1 ? 'bg-slate-900 text-white shadow-md' : 'bg-slate-200 text-slate-500 group-hover:bg-slate-300'">
+                <svg x-show="step > i+1" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span x-show="step <= i+1" x-text="i+1"></span>
+              </div>
+              <div class="hidden sm:block">
+                <p class="text-xs font-semibold leading-none"
+                  :class="step === i+1 ? 'text-slate-900' : step > i+1 ? 'text-emerald-600' : 'text-slate-400'"
+                  x-text="label.title"></p>
+                <p class="text-xs text-slate-400 mt-0.5 hidden md:block" x-text="label.sub"></p>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <!-- Progress bar -->
+      <div class="h-0.5 bg-slate-100 -mt-px">
+        <div class="h-0.5 bg-slate-900 transition-all duration-500"
+          :style="`width: ${((step-1)/3)*100}%`"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-24">
+
+    <!-- ==================== STEP 1: Company & Contacts ==================== -->
+    <div x-show="step === 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Company & Contacts</h1>
+        <p class="text-slate-500 mt-1">Your company details and key people we'll be working with.</p>
+      </div>
+
+      <!-- 1.1 Company Information -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.1</span>
+          <h2 class="text-base font-semibold text-slate-900">Company Information</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Company Name <span class="text-blue-500">*</span></label>
+            <input type="text" x-model="data.company.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-blue-50 text-slate-700" placeholder="Alfred Travel Ltd." />
+            <p class="text-xs text-blue-500 mt-1">Pre-filled — please verify</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Website <span class="text-blue-500">*</span></label>
+            <input type="text" x-model="data.company.website" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-blue-50 text-slate-700" placeholder="alfredtravel.io" />
+            <p class="text-xs text-blue-500 mt-1">Pre-filled — please verify</p>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Registered Address <span class="text-amber-500">*</span></label>
+            <textarea x-model="data.company.address" rows="2" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter registered address"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Company Reg. Number <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.company.regNumber" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 12345678" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">VAT Number <span class="text-slate-400 font-normal">(optional)</span></label>
+            <input type="text" x-model="data.company.vatNumber" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. GB123456789" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Primary Market(s) <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.company.primaryMarkets" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. UK, Germany, France" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">App Platform(s) <span class="text-amber-500">*</span></label>
+            <select x-model="data.company.appPlatforms" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select platforms...</option>
+              <option>iOS</option>
+              <option>Android</option>
+              <option>Web</option>
+              <option>iOS / Android</option>
+              <option>iOS / Web</option>
+              <option>Android / Web</option>
+              <option>All (iOS / Android / Web)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.2 Commercial Contact -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.2</span>
+          <h2 class="text-base font-semibold text-slate-900">Commercial Contact</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Full Name <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.commercial.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter name" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Job Title <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.commercial.title" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter title" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email <span class="text-amber-500">*</span></label>
+            <input type="email" x-model="data.commercial.email" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="name@company.com" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Phone</label>
+            <input type="tel" x-model="data.commercial.phone" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="+44 7700 000000" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.3 Technical Contact -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.3</span>
+          <h2 class="text-base font-semibold text-slate-900">Technical Contact</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Full Name <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.technical.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter name" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Job Title <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.technical.title" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter title" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email <span class="text-amber-500">*</span></label>
+            <input type="email" x-model="data.technical.email" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="dev@company.com" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Phone</label>
+            <input type="tel" x-model="data.technical.phone" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="+44 7700 000000" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">GitHub / GitLab Handle <span class="text-slate-400 font-normal">(optional)</span></label>
+            <input type="text" x-model="data.technical.github" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="@username" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.4 Finance / Billing Contact -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.4</span>
+          <h2 class="text-base font-semibold text-slate-900">Finance / Billing Contact</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Full Name <span class="text-amber-500">*</span></label>
+            <input type="text" x-model="data.finance.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter name" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Billing Email <span class="text-amber-500">*</span></label>
+            <input type="email" x-model="data.finance.email" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="finance@company.com" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Preferred Invoice Currency <span class="text-blue-500">*</span></label>
+            <input type="text" x-model="data.finance.currency" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-blue-50" placeholder="EUR (per agreement)" />
+            <p class="text-xs text-blue-500 mt-1">Pre-filled — please verify</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">PO Number Required?</label>
+            <select x-model="data.finance.poRequired" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select...</option>
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+            <div x-show="data.finance.poRequired === 'Yes'" class="mt-2">
+              <input type="text" x-model="data.finance.poNumber" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter PO number" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 2: Volume Forecast ==================== -->
+    <div x-show="step === 2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Volume Forecast</h1>
+        <p class="text-slate-500 mt-1">Expected monthly traffic and booking volumes for the 12 months post go-live. Ranges are welcome.</p>
+      </div>
+
+      <!-- 12-month table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <h2 class="text-base font-semibold text-slate-900 mb-4">12-Month Forecast</h2>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[700px]">
+            <thead>
+              <tr>
+                <th class="text-left" style="width:90px">Month</th>
+                <th class="text-right">App Sessions<br><span class="font-normal opacity-70">(unique users)</span></th>
+                <th class="text-right">Travel Searches<br><span class="font-normal opacity-70">(API queries)</span></th>
+                <th class="text-right">Confirmed<br>Bookings</th>
+                <th class="text-right">Avg. Booking<br>Value (EUR)</th>
+                <th class="text-right">Expected GBV<br><span class="font-normal opacity-70">(auto)</span></th>
+                <th class="text-right">Cancel<br>Rate %</th>
+                <th class="text-left" style="width:120px">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(m, i) in data.months" :key="i">
+                <tr>
+                  <td class="font-medium text-slate-600 text-sm pl-3" x-text="'Month ' + (i+1)"></td>
+                  <td><input type="number" x-model.number="m.sessions" @input="save()" class="table-input text-right" placeholder="—" min="0" /></td>
+                  <td><input type="number" x-model.number="m.searches" @input="save()" class="table-input text-right" placeholder="—" min="0" /></td>
+                  <td><input type="number" x-model.number="m.bookings" @input="save()" class="table-input text-right" placeholder="—" min="0" /></td>
+                  <td><input type="number" x-model.number="m.avgValue" @input="save()" class="table-input text-right" placeholder="—" min="0" /></td>
+                  <td>
+                    <div class="gbv-cell" x-text="(m.bookings && m.avgValue) ? '€' + (m.bookings * m.avgValue).toLocaleString() : '—'"></div>
+                  </td>
+                  <td><input type="number" x-model.number="m.cancellationRate" @input="save()" class="table-input text-right" placeholder="—" min="0" max="100" /></td>
+                  <td><input type="text" x-model="m.notes" @input="save()" class="table-input" placeholder="optional" /></td>
+                </tr>
+              </template>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td class="text-xs">TOTAL (12 mo.)</td>
+                <td class="text-right text-xs" x-text="sumField('sessions').toLocaleString()"></td>
+                <td class="text-right text-xs" x-text="sumField('searches').toLocaleString()"></td>
+                <td class="text-right text-xs" x-text="sumField('bookings').toLocaleString()"></td>
+                <td class="text-right text-xs opacity-50">—</td>
+                <td class="text-right text-xs" x-text="'€' + totalGBV().toLocaleString()"></td>
+                <td class="text-right text-xs opacity-50">—</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Additional Context -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-base font-semibold text-slate-900 mb-5">Additional Context</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Peak Travel Months</label>
+            <input type="text" x-model="data.forecast.peakMonths" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. July, August, December" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Average Trip Duration</label>
+            <input type="text" x-model="data.forecast.avgTripDuration" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 7-10 nights" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Avg. Lead Time to Departure</label>
+            <input type="text" x-model="data.forecast.avgLeadTime" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 3-6 weeks in advance" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Seasonal Patterns</label>
+            <input type="text" x-model="data.forecast.seasonalPatterns" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. school holidays, national events" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 3: Routes & Markets ==================== -->
+    <div x-show="step === 3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Routes & Markets</h1>
+        <p class="text-slate-500 mt-1">Your users' top departure airports, destinations, and travel segments.</p>
+      </div>
+
+      <!-- 3.1 Top Departure Airports -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">3.1</span>
+          <h2 class="text-base font-semibold text-slate-900">Top Departure Airports <span class="text-slate-400 font-normal text-sm">(up to 10)</span></h2>
+        </div>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[580px]">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th class="text-left">Airport Name</th>
+                <th class="text-left" style="width:90px">IATA Code</th>
+                <th class="text-left">City / Country</th>
+                <th class="text-right" style="width:100px">Est. % Traffic</th>
+                <th class="text-left">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(a, i) in data.airports" :key="i">
+                <tr>
+                  <td class="text-center text-xs font-medium text-slate-400" x-text="i+1"></td>
+                  <td><input type="text" x-model="a.name" @input="save()" class="table-input" placeholder="e.g. London Heathrow" /></td>
+                  <td><input type="text" x-model="a.iata" @input="save()" class="table-input uppercase" placeholder="LHR" maxlength="3" style="text-transform:uppercase" /></td>
+                  <td><input type="text" x-model="a.cityCountry" @input="save()" class="table-input" placeholder="London, UK" /></td>
+                  <td><input type="number" x-model.number="a.traffic" @input="save()" class="table-input text-right" placeholder="0" min="0" max="100" /></td>
+                  <td><input type="text" x-model="a.notes" @input="save()" class="table-input" placeholder="optional" /></td>
+                </tr>
+              </template>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="text-xs">TOTAL</td>
+                <td class="text-right text-xs" x-text="airportTotal() + '%'"></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="text-xs text-slate-400 mt-3">Traffic % should ideally sum to 100%.</p>
+      </div>
+
+      <!-- 3.2 Top Destinations -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">3.2</span>
+          <h2 class="text-base font-semibold text-slate-900">Top Destinations <span class="text-slate-400 font-normal text-sm">(up to 10)</span></h2>
+        </div>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[560px]">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th class="text-left">City / Region</th>
+                <th class="text-left">Country</th>
+                <th class="text-left">Product Type</th>
+                <th class="text-right" style="width:100px">Est. % Traffic</th>
+                <th class="text-left">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(d, i) in data.destinations" :key="i">
+                <tr>
+                  <td class="text-center text-xs font-medium text-slate-400" x-text="i+1"></td>
+                  <td><input type="text" x-model="d.cityRegion" @input="save()" class="table-input" placeholder="e.g. Malaga" /></td>
+                  <td><input type="text" x-model="d.country" @input="save()" class="table-input" placeholder="Spain" /></td>
+                  <td><input type="text" x-model="d.productType" @input="save()" class="table-input" placeholder="e.g. Packages, Flights" /></td>
+                  <td><input type="number" x-model.number="d.traffic" @input="save()" class="table-input text-right" placeholder="0" min="0" max="100" /></td>
+                  <td><input type="text" x-model="d.notes" @input="save()" class="table-input" placeholder="optional" /></td>
+                </tr>
+              </template>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="text-xs">TOTAL</td>
+                <td class="text-right text-xs" x-text="destTotal() + '%'"></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="text-xs text-slate-400 mt-3">Traffic % should ideally sum to 100%.</p>
+      </div>
+
+      <!-- 3.3 User Segments -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">3.3</span>
+          <h2 class="text-base font-semibold text-slate-900">User Segments & Travel Profile</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Primary User Segments</label>
+            <input type="text" x-model="data.segments.primarySegments" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Leisure, Family, Couples, Solo" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Typical Group Size</label>
+            <input type="text" x-model="data.segments.groupSize" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. avg. 2.3 passengers per booking" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Price Sensitivity</label>
+            <select x-model="data.segments.priceSensitivity" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select...</option>
+              <option>Budget</option>
+              <option>Mid-range</option>
+              <option>Premium</option>
+              <option>Mixed</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Booking Preference</label>
+            <input type="text" x-model="data.segments.bookingPreference" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. packages, flights only, hotels only" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Avg. Days to Departure</label>
+            <input type="text" x-model="data.segments.avgDaysToDeparture" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. typically 3-6 weeks in advance" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Mobile vs Desktop Split</label>
+            <input type="text" x-model="data.segments.mobileDesktopSplit" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 80% mobile, 20% desktop" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 4: Technical Details ==================== -->
+    <div x-show="step === 4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Technical Details</h1>
+        <p class="text-slate-500 mt-1">Your tech stack, integration preferences, branding, and data requirements.</p>
+      </div>
+
+      <!-- 4.1 Tech Stack -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.1</span>
+          <h2 class="text-base font-semibold text-slate-900">Tech Stack</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Frontend Framework</label>
+            <input type="text" x-model="data.tech.frontendFramework" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. React, Vue, Flutter, Swift" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Backend Language</label>
+            <input type="text" x-model="data.tech.backendLanguage" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Node.js, Python, Java, Go" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">API Preference</label>
+            <input type="text" x-model="data.tech.apiPreference" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="REST (required) — confirm or note constraints" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Authentication Method</label>
+            <input type="text" x-model="data.tech.authMethod" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. OAuth 2.0, API Key, JWT" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Hosting / Cloud Provider</label>
+            <input type="text" x-model="data.tech.hostingProvider" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. AWS, GCP, Azure, on-premise" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">CI/CD & Deployment Process</label>
+            <input type="text" x-model="data.tech.cicd" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. GitHub Actions, Jenkins" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.2 Existing Integrations -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.2</span>
+          <h2 class="text-base font-semibold text-slate-900">Existing Integrations</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Current GDS / Content Provider</label>
+            <input type="text" x-model="data.integrations.gds" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Amadeus, Sabre, Duffel, none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Existing Booking Engine</label>
+            <input type="text" x-model="data.integrations.bookingEngine" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. custom-built, third-party name" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Payment Provider</label>
+            <input type="text" x-model="data.integrations.paymentProvider" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Stripe, Adyen, Braintree" />
+            <p class="text-xs text-slate-400 mt-1">Note: HolidayHeroes handles payment as MoR</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Analytics / Attribution Platform</label>
+            <input type="text" x-model="data.integrations.analytics" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Mixpanel, Amplitude, GA4, Appsflyer" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">CRM / Customer Data Platform</label>
+            <input type="text" x-model="data.integrations.crm" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. HubSpot, Salesforce, Segment" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.3 White-Label & Branding -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.3</span>
+          <h2 class="text-base font-semibold text-slate-900">White-Label & Branding</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Brand Colour (Primary)</label>
+            <div class="flex gap-2">
+              <input type="color" x-model="data.branding.primaryColor" @input="save()" class="w-12 h-10 rounded-lg border border-slate-200 cursor-pointer p-0.5" />
+              <input type="text" x-model="data.branding.primaryColor" @input="save()" class="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="#1A2B3C" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Brand Colour (Secondary)</label>
+            <div class="flex gap-2">
+              <input type="color" x-model="data.branding.secondaryColor" @input="save()" class="w-12 h-10 rounded-lg border border-slate-200 cursor-pointer p-0.5" />
+              <input type="text" x-model="data.branding.secondaryColor" @input="save()" class="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="#FFFFFF" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Primary Font</label>
+            <input type="text" x-model="data.branding.primaryFont" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Inter, Montserrat, custom font name" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Logo Available?</label>
+            <select x-model="data.branding.logoAvailable" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select...</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+            <p class="text-xs text-slate-400 mt-1">We'll request assets separately</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Custom Domain for Checkout?</label>
+            <input type="text" x-model="data.branding.customDomain" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. book.alfredtravel.io" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Language Requirements</label>
+            <input type="text" x-model="data.branding.languages" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. English only / EN + DE + FR" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Currency Display</label>
+            <input type="text" x-model="data.branding.currencyDisplay" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. GBP / EUR / multi-currency" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 4.4 Data & Compliance -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center gap-2 mb-5">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.4</span>
+          <h2 class="text-base font-semibold text-slate-900">Data & Compliance</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">GDPR / Data Residency Requirements</label>
+            <input type="text" x-model="data.compliance.gdpr" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. EU data residency required, specific DPA needed" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Data Sharing Restrictions</label>
+            <input type="text" x-model="data.compliance.dataSharing" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Any restrictions on passing user data to HolidayHeroes?" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">PII Handling Preferences</label>
+            <input type="text" x-model="data.compliance.piiHandling" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. anonymised before API call, full PII passed at checkout" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Test Environment Available?</label>
+            <select x-model="data.compliance.testEnv" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select...</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Sandbox Testing Period Needed</label>
+            <input type="text" x-model="data.compliance.sandboxPeriod" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Approx. number of days for QA before go-live" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Additional Compliance Notes</label>
+            <textarea x-model="data.compliance.additionalNotes" rows="3" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Any other regulatory, legal, or security requirements"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Fixed Navigation Footer -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <button
+        x-show="step > 1"
+        @click="prevStep()"
+        class="flex items-center gap-2 px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
+      <div class="flex flex-col items-start gap-0.5">
+          <p class="text-xs text-slate-400 uppercase tracking-widest" style="font-size:9px;">Powered by</p>
+          <img src="holidayheroes.svg" alt="HolidayHeroes" class="h-4 w-auto opacity-50" />
+        </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Step dots -->
+        <div class="flex gap-1.5">
+          <template x-for="i in 4" :key="i">
+            <div class="w-1.5 h-1.5 rounded-full transition-colors"
+              :class="step === i ? 'bg-slate-900' : step > i ? 'bg-emerald-400' : 'bg-slate-200'"></div>
+          </template>
+        </div>
+
+        <button
+          x-show="step < 4"
+          @click="nextStep()"
+          class="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm">
+          Continue
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        <button
+          x-show="step === 4"
+          @click="submitForm()"
+          :disabled="submitting"
+          class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          style="background:#4ECDC4; color:#1A1A1A;">
+          <svg x-show="!submitting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          <svg x-show="submitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          <span x-text="submitting ? 'Sending...' : 'Submit Questionnaire'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+<!-- Success Screen (overlay) -->
+  <div x-show="submitted" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+    class="fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(26,26,26,0.85); backdrop-filter:blur(4px);">
+    <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full mx-4 text-center">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#4ECDC4;">
+        <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-slate-900 mb-2">Questionnaire Submitted!</h2>
+      <p class="text-slate-500 text-sm mb-6">Thank you — your responses have been received. The Alfred team will be in touch shortly to confirm your onboarding call.</p>
+      <p class="text-xs text-slate-400">You can close this window.</p>
+    </div>
+  </div>
+
+  <!-- Success Toast -->
+  <div x-show="showToast" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+    class="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    Excel file downloaded successfully!
+  </div>
+
+  <script>
+    function onboardingForm() {
+      return {
+        step: 1,
+        showToast: false,
+        submitting: false,
+        submitted: false,
+
+        stepLabels: [
+          { title: 'Company & Contacts', sub: 'Details & key people' },
+          { title: 'Volume Forecast', sub: '12-month projections' },
+          { title: 'Routes & Markets', sub: 'Airports & destinations' },
+          { title: 'Technical Details', sub: 'Stack & compliance' },
+        ],
+
+        data: {
+          company: {
+            name: 'Alfred Travel Ltd.',
+            website: 'alfredtravel.io',
+            address: '',
+            regNumber: '',
+            vatNumber: '',
+            primaryMarkets: '',
+            appPlatforms: '',
+          },
+          commercial: { name: '', title: '', email: '', phone: '' },
+          technical: { name: '', title: '', email: '', phone: '', github: '' },
+          finance: { name: '', email: '', currency: 'EUR (per agreement)', poRequired: '', poNumber: '' },
+          months: Array.from({ length: 12 }, () => ({
+            sessions: '', searches: '', bookings: '', avgValue: '', cancellationRate: '', notes: ''
+          })),
+          forecast: { peakMonths: '', avgTripDuration: '', avgLeadTime: '', seasonalPatterns: '' },
+          airports: Array.from({ length: 10 }, () => ({ name: '', iata: '', cityCountry: '', traffic: '', notes: '' })),
+          destinations: Array.from({ length: 10 }, () => ({ cityRegion: '', country: '', productType: '', traffic: '', notes: '' })),
+          segments: {
+            primarySegments: '', groupSize: '', priceSensitivity: '',
+            bookingPreference: '', avgDaysToDeparture: '', mobileDesktopSplit: ''
+          },
+          tech: {
+            frontendFramework: '', backendLanguage: '', apiPreference: '',
+            authMethod: '', hostingProvider: '', cicd: ''
+          },
+          integrations: { gds: '', bookingEngine: '', paymentProvider: '', analytics: '', crm: '' },
+          branding: {
+            primaryColor: '#000000', secondaryColor: '#FFFFFF',
+            primaryFont: '', logoAvailable: '', customDomain: '',
+            languages: '', currencyDisplay: ''
+          },
+          compliance: {
+            gdpr: '', dataSharing: '', piiHandling: '',
+            testEnv: '', sandboxPeriod: '', additionalNotes: ''
+          },
+        },
+
+        init() {
+          try {
+            const saved = localStorage.getItem('alfred_onboarding_v1');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              this.data = parsed.data || this.data;
+              this.step = parsed.step || 1;
+            }
+          } catch (e) {}
+          this.$watch('data', () => this.save(), { deep: true });
+        },
+
+        save() {
+          try {
+            localStorage.setItem('alfred_onboarding_v1', JSON.stringify({ data: this.data, step: this.step }));
+          } catch (e) {}
+        },
+
+        nextStep() {
+          if (this.step < 4) {
+            this.step++;
+            this.save();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        },
+
+        prevStep() {
+          if (this.step > 1) {
+            this.step--;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        },
+
+        goToStep(s) {
+          this.step = s;
+          this.save();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+
+        sumField(field) {
+          return this.data.months.reduce((sum, m) => sum + (Number(m[field]) || 0), 0);
+        },
+
+        totalGBV() {
+          return this.data.months.reduce((sum, m) => {
+            const b = Number(m.bookings) || 0;
+            const v = Number(m.avgValue) || 0;
+            return sum + b * v;
+          }, 0);
+        },
+
+        airportTotal() {
+          return this.data.airports.reduce((sum, a) => sum + (Number(a.traffic) || 0), 0);
+        },
+
+        destTotal() {
+          return this.data.destinations.reduce((sum, d) => sum + (Number(d.traffic) || 0), 0);
+        },
+
+        async submitForm() {
+          this.submitting = true;
+          try {
+            const d = this.data;
+
+            const message = [
+              '=== 1. COMPANY INFORMATION ===',
+              `Company: ${d.company.name}`,
+              `Website: ${d.company.website}`,
+              `Address: ${d.company.address}`,
+              `Reg. Number: ${d.company.regNumber}`,
+              `VAT: ${d.company.vatNumber}`,
+              `Markets: ${d.company.primaryMarkets}`,
+              `Platforms: ${d.company.appPlatforms}`,
+              '',
+              '--- Commercial Contact ---',
+              `Name: ${d.commercial.name} | Title: ${d.commercial.title}`,
+              `Email: ${d.commercial.email} | Phone: ${d.commercial.phone}`,
+              '',
+              '--- Technical Contact ---',
+              `Name: ${d.technical.name} | Title: ${d.technical.title}`,
+              `Email: ${d.technical.email} | Phone: ${d.technical.phone}`,
+              `GitHub: ${d.technical.github}`,
+              '',
+              '--- Finance Contact ---',
+              `Name: ${d.finance.name} | Email: ${d.finance.email}`,
+              `Currency: ${d.finance.currency} | PO Required: ${d.finance.poRequired}`,
+              '',
+              '=== 2. VOLUME FORECAST ===',
+              ...d.months.map((m, i) => `Month ${i+1}: Sessions=${m.sessions||'—'} | Searches=${m.searches||'—'} | Bookings=${m.bookings||'—'} | Avg Value=€${m.avgValue||'—'} | Cancel=${m.cancellationRate||'—'}% ${m.notes ? '| '+m.notes : ''}`),
+              `Peak Months: ${d.forecast.peakMonths}`,
+              `Trip Duration: ${d.forecast.avgTripDuration}`,
+              `Lead Time: ${d.forecast.avgLeadTime}`,
+              `Seasonal Patterns: ${d.forecast.seasonalPatterns}`,
+              '',
+              '=== 3. ROUTES & MARKETS ===',
+              '--- Top Departure Airports ---',
+              ...d.airports.filter(a => a.name).map((a, i) => `${i+1}. ${a.name} (${a.iata}) | ${a.cityCountry} | ${a.traffic}%`),
+              '',
+              '--- Top Destinations ---',
+              ...d.destinations.filter(dest => dest.cityRegion).map((dest, i) => `${i+1}. ${dest.cityRegion}, ${dest.country} | ${dest.productType} | ${dest.traffic}%`),
+              '',
+              '--- User Segments ---',
+              `Segments: ${d.segments.primarySegments}`,
+              `Group Size: ${d.segments.groupSize}`,
+              `Price Sensitivity: ${d.segments.priceSensitivity}`,
+              `Booking Preference: ${d.segments.bookingPreference}`,
+              `Days to Departure: ${d.segments.avgDaysToDeparture}`,
+              `Mobile/Desktop: ${d.segments.mobileDesktopSplit}`,
+              '',
+              '=== 4. TECHNICAL DETAILS ===',
+              `Frontend: ${d.tech.frontendFramework}`,
+              `Backend: ${d.tech.backendLanguage}`,
+              `API: ${d.tech.apiPreference}`,
+              `Auth: ${d.tech.authMethod}`,
+              `Hosting: ${d.tech.hostingProvider}`,
+              `CI/CD: ${d.tech.cicd}`,
+              '',
+              `GDS: ${d.integrations.gds}`,
+              `Booking Engine: ${d.integrations.bookingEngine}`,
+              `Payment Provider: ${d.integrations.paymentProvider}`,
+              `Analytics: ${d.integrations.analytics}`,
+              `CRM: ${d.integrations.crm}`,
+              '',
+              `Primary Color: ${d.branding.primaryColor}`,
+              `Secondary Color: ${d.branding.secondaryColor}`,
+              `Font: ${d.branding.primaryFont}`,
+              `Logo Available: ${d.branding.logoAvailable}`,
+              `Custom Domain: ${d.branding.customDomain}`,
+              `Languages: ${d.branding.languages}`,
+              `Currency Display: ${d.branding.currencyDisplay}`,
+              '',
+              `GDPR: ${d.compliance.gdpr}`,
+              `Data Sharing: ${d.compliance.dataSharing}`,
+              `PII Handling: ${d.compliance.piiHandling}`,
+              `Test Environment: ${d.compliance.testEnv}`,
+              `Sandbox Period: ${d.compliance.sandboxPeriod}`,
+              `Compliance Notes: ${d.compliance.additionalNotes}`,
+            ].join('\n');
+
+            await emailjs.send(
+              'service_p1ksk6f',
+              'template_wuo10co',
+              {
+                partner_name:  d.company.name    || 'Unknown Partner',
+                contact_name:  d.commercial.name  || '',
+                contact_email: d.commercial.email || '',
+                contact_phone: d.commercial.phone || '',
+                message,
+              },
+              'wZLb1VU-f8UM6QvPA'
+            );
+
+            this.submitted = true;
+            localStorage.removeItem('alfred_onboarding_v1');
+          } catch (err) {
+            console.error(err);
+            alert('Could not send. Please try again or contact your account manager.');
+          } finally {
+            this.submitting = false;
+          }
+        },
+
+        generateExcel() {
+          const wb = XLSX.utils.book_new();
+          const d = this.data;
+
+          // ---- Sheet 1: Instructions ----
+          const s0 = [
+            ['ALFRED TRAVEL — ONBOARDING QUESTIONNAIRE'],
+            ['Agentic Commerce Integration  ·  Powered by HolidayHeroes x Move'],
+            [],
+            ['Purpose', '', "This questionnaire helps our integration and account management teams understand Alfred's business, user behaviour, and technical setup before the Technical Onboarding Call."],
+            ['Who should complete it', '', 'Please involve your commercial lead, technical lead, and operations/data team as needed. Not all questions may apply — leave any non-applicable fields blank.'],
+            ['How to fill it in', '', 'This form was completed digitally via the Alfred Partner Onboarding portal.'],
+            [],
+            ['TABS IN THIS FILE'],
+            ['1 — Company & Contacts', '', "Your company details and the key people we'll be working with."],
+            ['2 — Volume Forecast', '', 'Expected monthly traffic and booking volumes for the next 12 months post go-live.'],
+            ['3 — Routes & Markets', '', "Your users' top departure airports, destinations, and travel segments."],
+            ['4 — Technical Details', '', 'Your tech stack, integration preferences, and data requirements.'],
+          ];
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s0), 'Instructions');
+
+          // ---- Sheet 2: Company & Contacts ----
+          const s1 = [
+            ['COMPANY & CONTACT INFORMATION'],
+            [],
+            ['  1.1  Company Information'],
+            ['Company Name', '', d.company.name],
+            ['Website', '', d.company.website],
+            ['Registered Address', '', d.company.address],
+            ['Company Reg. Number', '', d.company.regNumber],
+            ['VAT Number', '', d.company.vatNumber],
+            ['Primary Market(s)', '', d.company.primaryMarkets],
+            ['App Platform(s)', '', d.company.appPlatforms],
+            [],
+            ['  1.2  Commercial Contact'],
+            ['Full Name', '', d.commercial.name],
+            ['Job Title', '', d.commercial.title],
+            ['Email', '', d.commercial.email],
+            ['Phone', '', d.commercial.phone],
+            [],
+            ['  1.3  Technical Contact'],
+            ['Full Name', '', d.technical.name],
+            ['Job Title', '', d.technical.title],
+            ['Email', '', d.technical.email],
+            ['Phone', '', d.technical.phone],
+            ['GitHub / GitLab handle', '', d.technical.github],
+            [],
+            ['  1.4  Finance / Billing Contact'],
+            ['Full Name', '', d.finance.name],
+            ['Email', '', d.finance.email],
+            ['Preferred Invoice Currency', '', d.finance.currency],
+            ['PO Number Required?', '', d.finance.poRequired + (d.finance.poNumber ? ' — ' + d.finance.poNumber : '')],
+          ];
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1), '1 — Company & Contacts');
+
+          // ---- Sheet 3: Volume Forecast ----
+          const monthNames = ['Month 1','Month 2','Month 3','Month 4','Month 5','Month 6','Month 7','Month 8','Month 9','Month 10','Month 11','Month 12'];
+          const s2 = [
+            ['TRAFFIC & BOOKING VOLUME FORECAST — 12 MONTHS POST GO-LIVE'],
+            ['Please fill in your best estimates for each month after Integration Go-Live.'],
+            [],
+            ['Month', 'Monthly App Sessions (unique users)', 'Travel Searches (queries to API)', 'Confirmed Bookings', 'Avg. Booking Value (EUR)', 'Expected GBV (EUR)', 'Cancellation Rate (%)', 'Notes'],
+            ...d.months.map((m, i) => [
+              monthNames[i],
+              m.sessions || '',
+              m.searches || '',
+              m.bookings || '',
+              m.avgValue || '',
+              (m.bookings && m.avgValue) ? Number(m.bookings) * Number(m.avgValue) : '',
+              m.cancellationRate || '',
+              m.notes || '',
+            ]),
+            ['TOTAL (12 mo.)', this.sumField('sessions'), this.sumField('searches'), this.sumField('bookings'), '', this.totalGBV(), '', ''],
+            [],
+            ['  Additional Context'],
+            ['Peak Travel Months', '', d.forecast.peakMonths],
+            ['Seasonal Patterns', '', d.forecast.seasonalPatterns],
+            ['Avg. Lead Time to Departure', '', d.forecast.avgLeadTime],
+            ['Average Trip Duration', '', d.forecast.avgTripDuration],
+          ];
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s2), '2 — Volume Forecast');
+
+          // ---- Sheet 4: Routes & Markets ----
+          const s3 = [
+            ['ROUTES, DESTINATIONS & USER SEGMENTS'],
+            [],
+            ['  3.1  Top Departure Airports (up to 10)'],
+            ['#', 'Airport Name', 'IATA Code', 'City / Country', 'Est. % of Traffic', 'Notes'],
+            ...d.airports.map((a, i) => [i+1, a.name, a.iata, a.cityCountry, a.traffic || '', a.notes]),
+            ['Total', '', '', '', this.airportTotal() + '%', ''],
+            [],
+            ['  3.2  Top Destinations (up to 10)'],
+            ['#', 'City / Region', 'Country', 'Product Type', 'Est. % of Traffic', 'Notes'],
+            ...d.destinations.map((dest, i) => [i+1, dest.cityRegion, dest.country, dest.productType, dest.traffic || '', dest.notes]),
+            ['Total', '', '', '', this.destTotal() + '%', ''],
+            [],
+            ['  3.3  User Segments & Travel Profile'],
+            ['Primary User Segments', '', '', d.segments.primarySegments],
+            ['Typical Group Size', '', '', d.segments.groupSize],
+            ['Price Sensitivity', '', '', d.segments.priceSensitivity],
+            ['Booking Preference', '', '', d.segments.bookingPreference],
+            ['Avg. Days to Departure', '', '', d.segments.avgDaysToDeparture],
+            ['Mobile vs Desktop Split', '', '', d.segments.mobileDesktopSplit],
+          ];
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s3), '3 — Routes & Markets');
+
+          // ---- Sheet 5: Technical Details ----
+          const s4 = [
+            ['TECHNICAL INTEGRATION DETAILS'],
+            [],
+            ['  4.1  Tech Stack'],
+            ['Frontend Framework', '', '', d.tech.frontendFramework],
+            ['Backend Language', '', '', d.tech.backendLanguage],
+            ['API Preference', '', '', d.tech.apiPreference],
+            ['Authentication Method', '', '', d.tech.authMethod],
+            ['Hosting / Cloud Provider', '', '', d.tech.hostingProvider],
+            ['CI/CD & Deployment Process', '', '', d.tech.cicd],
+            [],
+            ['  4.2  Existing Integrations'],
+            ['Current GDS / Content Provider', '', '', d.integrations.gds],
+            ['Existing Booking Engine', '', '', d.integrations.bookingEngine],
+            ['Payment Provider', '', '', d.integrations.paymentProvider],
+            ['Analytics / Attribution Platform', '', '', d.integrations.analytics],
+            ['CRM / Customer Data Platform', '', '', d.integrations.crm],
+            [],
+            ['  4.3  White-Label & Branding Requirements'],
+            ['Brand Colour (Primary)', '', '', d.branding.primaryColor],
+            ['Brand Colour (Secondary)', '', '', d.branding.secondaryColor],
+            ['Primary Font', '', '', d.branding.primaryFont],
+            ['Logo Available?', '', '', d.branding.logoAvailable],
+            ['Custom Domain for Checkout?', '', '', d.branding.customDomain],
+            ['Language Requirements', '', '', d.branding.languages],
+            ['Currency Display', '', '', d.branding.currencyDisplay],
+            [],
+            ['  4.4  Data & Compliance'],
+            ['GDPR / Data Residency Requirements', '', '', d.compliance.gdpr],
+            ['Data Sharing Restrictions', '', '', d.compliance.dataSharing],
+            ['PII Handling Preferences', '', '', d.compliance.piiHandling],
+            ['Test Environment Available?', '', '', d.compliance.testEnv],
+            ['Sandbox Testing Period Needed', '', '', d.compliance.sandboxPeriod],
+            ['Additional Compliance Notes', '', '', d.compliance.additionalNotes],
+          ];
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s4), '4 — Technical Details');
+
+          XLSX.writeFile(wb, 'Alfred_Onboarding_Questionnaire_Completed.xlsx');
+
+          this.showToast = true;
+          setTimeout(() => { this.showToast = false; }, 3500);
+        },
+      };
+    }
+  </script>
+</body>
+</html>

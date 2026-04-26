@@ -1,0 +1,10 @@
+{
+  "outputDirectory": ".",
+  "builds": [
+    { "src": "onboarding.html", "use": "@vercel/static" },
+    { "src": "*.svg", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}
