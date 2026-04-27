@@ -912,7 +912,7 @@
               `Compliance Notes: ${d.compliance.additionalNotes}`,
             ].join('\n');
 
-            await fetch('https://script.google.com/a/macros/wearemove.io/s/AKfycbxsAC4QKsE31GhsZawy3D1ftaDoZLIf9qC1mv0vYRcHvyR5TZyyH0LhNtf_LPAUbxRs/exec', {
+            await fetch('https://script.google.com/macros/s/AKfycby_XlHpOC-RQxVJ2eUMxADdwp0p1C5cBcXSSllOHP1e9LBUhGiYYRobiPc_D02rdWyD/exec', {
               method: 'POST',
               body: JSON.stringify({ ...this.data, message }),
             });
