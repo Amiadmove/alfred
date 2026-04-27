@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
   <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -913,18 +912,10 @@
               `Compliance Notes: ${d.compliance.additionalNotes}`,
             ].join('\n');
 
-            await emailjs.send(
-              'service_p1ksk6f',
-              'template_wuo10co',
-              {
-                partner_name:  d.company.name    || 'Unknown Partner',
-                contact_name:  d.commercial.name  || '',
-                contact_email: d.commercial.email || '',
-                contact_phone: d.commercial.phone || '',
-                message,
-              },
-              'wZLb1VU-f8UM6QvPA'
-            );
+            await fetch('https://script.google.com/a/macros/wearemove.io/s/AKfycbxsAC4QKsE31GhsZawy3D1ftaDoZLIf9qC1mv0vYRcHvyR5TZyyH0LhNtf_LPAUbxRs/exec', {
+              method: 'POST',
+              body: JSON.stringify({ ...this.data, message }),
+            });
 
             this.submitted = true;
             localStorage.removeItem('alfred_onboarding_v1');
