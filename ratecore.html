@@ -797,7 +797,7 @@
         async submitForm() {
           this.submitting = true;
           try {
-            const res = await fetch('/submit/ratecore', {
+            const res = await fetch('/api/submit-ratecore', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(this.data),
