@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Move — HolidayHeroes Onboarding</title>
+  <link rel="icon" type="image/svg+xml" href="move.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F9FC; }
+    input, textarea, select { transition: border-color 0.15s, box-shadow 0.15s; }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3689FB;
+      box-shadow: 0 0 0 3px rgba(54,137,251,0.12);
+    }
+    .table-input {
+      width: 100%; padding: 6px 10px;
+      border: 1px solid #E2E8F0; border-radius: 6px;
+      font-size: 13px; background: #FAFAFA; color: #1E293B;
+    }
+    .table-input:focus {
+      outline: none; border-color: #3689FB;
+      background: white; box-shadow: 0 0 0 2px rgba(54,137,251,0.12);
+    }
+    thead th {
+      background: #152656; color: white;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 10px 12px; white-space: nowrap;
+    }
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child  { border-radius: 0 8px 0 0; }
+    tbody tr:nth-child(even) td { background: #F8FAFC; }
+    tbody tr:hover td { background: #EBF3FF; }
+    tbody td { padding: 6px 8px; border-bottom: 1px solid #F1F5F9; }
+    .yn-select { width: 90px; }
+    .q-card { background: white; border-radius: 20px; border: 1px solid #E2E8F0; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .q-num { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #94A3B8; }
+    .q-label { font-size: 15px; font-weight: 600; color: #1E293B; margin-top: 4px; margin-bottom: 16px; line-height: 1.4; }
+    .field-label { font-size: 12px; font-weight: 600; color: #64748B; margin-bottom: 6px; display: block; }
+    .cb-group { display: flex; gap: 24px; margin-top: 4px; }
+    .cb-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #334155; }
+    .cb-item input[type=checkbox] { width: 16px; height: 16px; accent-color: #3689FB; cursor: pointer; }
+    .yn-row { display: grid; grid-template-columns: 120px 120px 120px; gap: 16px; align-items: end; }
+    .yn-col label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94A3B8; display: block; margin-bottom: 6px; }
+  </style>
+</head>
+<body x-data="hhForm()" x-init="init()" x-cloak>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-white" style="border-bottom:1px solid #E2E8F0; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div class="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <img src="move.svg" alt="Move" class="h-7 w-auto" />
+        <div class="w-px h-5 bg-slate-200 hidden sm:block"></div>
+        <img src="holidayheroes.svg" alt="HolidayHeroes" class="h-5 w-auto opacity-60 hidden sm:block" />
+      </div>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full text-white" style="background:#152656;">
+        Step <span x-text="step"></span> / 4
+      </span>
+    </div>
+  </header>
+
+  <!-- Progress bar -->
+  <div class="bg-white border-b border-slate-100">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="flex">
+        <template x-for="(lbl, i) in stepLabels" :key="i">
+          <div class="flex-1 py-4 cursor-pointer" @click="goToStep(i+1)">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                :class="step > i+1 ? 'bg-emerald-500 text-white' : ''"
+                :style="step === i+1 ? 'background:#152656;color:white;box-shadow:0 2px 8px rgba(21,38,86,0.25)' : step < i+1 ? 'background:#E2E8F0;color:#94A3B8' : ''">
+                <svg x-show="step > i+1" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span x-show="step <= i+1" x-text="i+1"></span>
+              </div>
+              <div class="hidden sm:block">
+                <p class="text-xs font-semibold leading-none" :style="step===i+1?'color:#152656':''" :class="step>i+1?'text-emerald-600':'text-slate-400'" x-text="lbl.title"></p>
+                <p class="text-xs text-slate-400 mt-0.5 hidden md:block" x-text="lbl.sub"></p>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="h-0.5 bg-slate-100 -mt-px">
+        <div class="h-0.5 transition-all duration-500" style="background:#3689FB;" :style="`width:${((step-1)/3)*100}%`"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-28">
+
+    <!-- ============================================================ -->
+    <!-- STEP 1: Company & Contacts                                    -->
+    <!-- ============================================================ -->
+    <div x-show="step===1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-3" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style="background:#FFF8E6;color:#D97706;">HolidayHeroes Platform</div>
+        <h1 class="text-2xl font-bold" style="color:#152656;">Company & Contacts</h1>
+        <p class="text-slate-500 mt-1">Your company details and key people we'll be working with.</p>
+      </div>
+
+      <div class="q-card">
+        <span class="q-num">Company Information</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="field-label">Company Name <span style="color:#3689FB;">*</span></label>
+            <input type="text" x-model="d.company.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Setur Travel" />
+          </div>
+          <div>
+            <label class="field-label">Website</label>
+            <input type="text" x-model="d.company.website" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. setur.com.tr" />
+          </div>
+          <div>
+            <label class="field-label">Country / HQ Location</label>
+            <input type="text" x-model="d.company.country" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Turkey" />
+          </div>
+          <div>
+            <label class="field-label">Company Type</label>
+            <select x-model="d.company.type" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select...</option>
+              <option>Tour Operator</option>
+              <option>OTA</option>
+              <option>Travel Agency</option>
+              <option>B2B Wholesaler</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <span class="q-num">Commercial Contact</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div><label class="field-label">Full Name <span style="color:#3689FB;">*</span></label><input type="text" x-model="d.commercial.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter name" /></div>
+          <div><label class="field-label">Job Title</label><input type="text" x-model="d.commercial.title" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter title" /></div>
+          <div><label class="field-label">Email <span style="color:#3689FB;">*</span></label><input type="email" x-model="d.commercial.email" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="name@company.com" /></div>
+          <div><label class="field-label">Phone</label><input type="tel" x-model="d.commercial.phone" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="+44 7700 000000" /></div>
+        </div>
+      </div>
+
+      <div class="q-card">
+        <span class="q-num">Technical Contact</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div><label class="field-label">Full Name</label><input type="text" x-model="d.technical.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter name" /></div>
+          <div><label class="field-label">Job Title</label><input type="text" x-model="d.technical.title" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter title" /></div>
+          <div><label class="field-label">Email</label><input type="email" x-model="d.technical.email" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="dev@company.com" /></div>
+          <div><label class="field-label">Phone</label><input type="tel" x-model="d.technical.phone" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="+44 7700 000000" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STEP 2: Market & Routes (Q1–Q7)                              -->
+    <!-- ============================================================ -->
+    <div x-show="step===2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-3" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold" style="color:#152656;">Market & Routes</h1>
+        <p class="text-slate-500 mt-1">Questions 1–7: your market, routes and destinations.</p>
+      </div>
+
+      <!-- Q1 -->
+      <div class="q-card">
+        <span class="q-num">Question 1</span>
+        <p class="q-label">In which market are you operating?</p>
+        <textarea x-model="d.market" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Outbound mainly Europe, Dubai, Egypt, Thailand, Japan…"></textarea>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-card">
+        <span class="q-num">Question 2</span>
+        <p class="q-label">In which currency are you selling?</p>
+        <input type="text" x-model="d.currencies" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. TRY, EUR, USD (invoice: TRY, display: 2 currencies)" />
+      </div>
+
+      <!-- Q3 -->
+      <div class="q-card">
+        <span class="q-num">Question 3</span>
+        <p class="q-label">What origin departure airports do you want to be included in the application(s)?</p>
+        <textarea x-model="d.departureAirports" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Istanbul (IST, SAW), Ankara (ESB), Izmir (ADB), Antalya (ANT), Dalaman (DLM)…"></textarea>
+        <p class="text-xs text-slate-400 mt-2">List IATA codes where possible.</p>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q-card">
+        <span class="q-num">Question 4</span>
+        <p class="q-label">What destinations are relevant for your market/region?<br><span class="font-normal text-slate-500" style="font-size:13px;">Name the destinations which make 80% of your revenue.</span></p>
+        <textarea x-model="d.destinations" rows="6" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g.&#10;Northern Cyprus (Lefkosa)&#10;Germany: Berlin, Munich, Frankfurt, Hamburg…&#10;France: Paris, Nice, Lyon&#10;UK: London, Manchester, Edinburgh&#10;UAE: Dubai, Abu Dhabi"></textarea>
+      </div>
+
+      <!-- Q5: Top 20 Routes table -->
+      <div class="q-card">
+        <span class="q-num">Question 5</span>
+        <p class="q-label">Please share your Top 20 Routes</p>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[400px]">
+            <thead>
+              <tr>
+                <th style="width:36px">#</th>
+                <th class="text-left">Route / Destination</th>
+                <th class="text-center" style="width:100px">Domestic</th>
+                <th class="text-center" style="width:110px">International</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(r, i) in d.routes" :key="i">
+                <tr>
+                  <td class="text-center text-xs font-medium text-slate-400" x-text="i+1"></td>
+                  <td><input type="text" x-model="r.name" @input="save()" class="table-input" placeholder="e.g. Istanbul – London" /></td>
+                  <td class="text-center">
+                    <input type="checkbox" x-model="r.domestic" @change="save()" class="w-4 h-4 rounded" style="accent-color:#3689FB;" />
+                  </td>
+                  <td class="text-center">
+                    <input type="checkbox" x-model="r.international" @change="save()" class="w-4 h-4 rounded" style="accent-color:#3689FB;" />
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="q-card">
+        <span class="q-num">Question 6</span>
+        <p class="q-label">Estimate the total number of routes you are currently selling?</p>
+        <input type="text" x-model="d.totalRoutes" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 850 for outbound" />
+      </div>
+
+      <!-- Q7 -->
+      <div class="q-card">
+        <span class="q-num">Question 7</span>
+        <p class="q-label">% of routes which make 80% of your revenue?</p>
+        <input type="text" x-model="d.revenueRoutePct" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 10.2% for outbound" />
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STEP 3: Content (Q8–Q10)                                     -->
+    <!-- ============================================================ -->
+    <div x-show="step===3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-3" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold" style="color:#152656;">Content Sources</h1>
+        <p class="text-slate-500 mt-1">Questions 8–10: air, hotel and other content you carry.</p>
+      </div>
+
+      <!-- Q8: Air content -->
+      <div class="q-card">
+        <span class="q-num">Question 8</span>
+        <p class="q-label">Please list all relevant air content that you currently have and need, and its source.</p>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[700px]">
+            <thead>
+              <tr>
+                <th class="text-left">Airline</th>
+                <th class="text-left" style="width:100px">GDS</th>
+                <th class="text-center" style="width:60px">TF</th>
+                <th class="text-left" style="width:110px">Aggregator</th>
+                <th class="text-center" style="width:70px">Direct</th>
+                <th class="text-center" style="width:60px">NDC</th>
+                <th class="text-center" style="width:90px">Negotiated</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(a, i) in d.airContent" :key="i">
+                <tr>
+                  <td><input type="text" x-model="a.airline" @input="save()" class="table-input" placeholder="e.g. Turkish Airlines" /></td>
+                  <td><input type="text" x-model="a.gds" @input="save()" class="table-input" placeholder="e.g. Amadeus" /></td>
+                  <td><input type="text" x-model="a.tf" @input="save()" class="table-input text-center" placeholder="—" /></td>
+                  <td><input type="text" x-model="a.aggregator" @input="save()" class="table-input" placeholder="—" /></td>
+                  <td class="text-center">
+                    <select x-model="a.direct" @change="save()" class="table-input text-center yn-select">
+                      <option value="">—</option><option>Yes</option><option>No</option>
+                    </select>
+                  </td>
+                  <td class="text-center">
+                    <select x-model="a.ndc" @change="save()" class="table-input text-center yn-select">
+                      <option value="">—</option><option>Yes</option><option>No</option>
+                    </select>
+                  </td>
+                  <td class="text-center">
+                    <select x-model="a.negotiated" @change="save()" class="table-input text-center yn-select">
+                      <option value="">—</option><option>Yes</option><option>No</option>
+                    </select>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">TF = Technical Facilitation</p>
+      </div>
+
+      <!-- Q9: Hotel content -->
+      <div class="q-card">
+        <span class="q-num">Question 9</span>
+        <p class="q-label">Please list all relevant Hotel content that you currently have and its source.</p>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[680px]">
+            <thead>
+              <tr>
+                <th class="text-left">Name / Group</th>
+                <th class="text-center" style="width:60px">GDS</th>
+                <th class="text-left" style="width:120px">Bedbank(s)</th>
+                <th class="text-center" style="width:100px">Direct Connect</th>
+                <th class="text-left" style="width:150px">Aggregator / Channel Mgr</th>
+                <th class="text-left" style="width:100px">Other</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(h, i) in d.hotelContent" :key="i">
+                <tr>
+                  <td><input type="text" x-model="h.name" @input="save()" class="table-input" placeholder="e.g. Expedia" /></td>
+                  <td class="text-center">
+                    <select x-model="h.gds" @change="save()" class="table-input text-center yn-select">
+                      <option value="">—</option><option>Yes</option><option>No</option>
+                    </select>
+                  </td>
+                  <td><input type="text" x-model="h.bedbank" @input="save()" class="table-input" placeholder="e.g. HotelBeds" /></td>
+                  <td class="text-center">
+                    <select x-model="h.directConnect" @change="save()" class="table-input text-center yn-select">
+                      <option value="">—</option><option>Yes</option><option>No</option>
+                    </select>
+                  </td>
+                  <td><input type="text" x-model="h.aggregator" @input="save()" class="table-input" placeholder="e.g. OTA, Channel Mgr" /></td>
+                  <td><input type="text" x-model="h.other" @input="save()" class="table-input" placeholder="—" /></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q10: Non-air content -->
+      <div class="q-card">
+        <span class="q-num">Question 10</span>
+        <p class="q-label">Please list any other NON-Air content that you currently have and resell, as well as its source.</p>
+        <div class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[480px]">
+            <thead>
+              <tr>
+                <th class="text-left">Type</th>
+                <th class="text-left">Source / Connection</th>
+                <th class="text-center" style="width:110px">Negotiated Pricing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(n, i) in d.nonAirContent" :key="i">
+                <tr>
+                  <td><input type="text" x-model="n.type" @input="save()" class="table-input" placeholder="e.g. Transfers, Cruise, Car hire…" /></td>
+                  <td><input type="text" x-model="n.source" @input="save()" class="table-input" placeholder="e.g. Blacklane API, local DMC" /></td>
+                  <td class="text-center">
+                    <select x-model="n.negotiated" @change="save()" class="table-input text-center yn-select">
+                      <option value="">—</option><option>Yes</option><option>No</option>
+                    </select>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STEP 4: Operations & Technology (Q11–Q23)                    -->
+    <!-- ============================================================ -->
+    <div x-show="step===4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-3" x-transition:enter-end="opacity-100 translate-x-0">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold" style="color:#152656;">Operations & Technology</h1>
+        <p class="text-slate-500 mt-1">Questions 11–23: partnerships, payments, applications and technical requirements.</p>
+      </div>
+
+      <!-- Q11: Tour operators -->
+      <div class="q-card">
+        <span class="q-num">Question 11</span>
+        <p class="q-label">Do you currently resell any content from other tour operators and want to continue doing so?</p>
+        <div class="flex gap-4 mb-4">
+          <label class="cb-item"><input type="radio" x-model="d.resellTourOps" value="Yes" @change="save()" style="accent-color:#3689FB;" /> Yes</label>
+          <label class="cb-item"><input type="radio" x-model="d.resellTourOps" value="No" @change="save()" style="accent-color:#3689FB;" /> No</label>
+        </div>
+        <div x-show="d.resellTourOps === 'Yes'" class="overflow-x-auto rounded-xl">
+          <table class="w-full border-collapse min-w-[380px]">
+            <thead>
+              <tr>
+                <th class="text-left">Tour Operator</th>
+                <th class="text-left">How are you connected?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(t, i) in d.tourOperators" :key="i">
+                <tr>
+                  <td><input type="text" x-model="t.name" @input="save()" class="table-input" placeholder="e.g. TUI" /></td>
+                  <td><input type="text" x-model="t.connection" @input="save()" class="table-input" placeholder="e.g. API, XML feed, manual" /></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Q12 -->
+      <div class="q-card">
+        <span class="q-num">Question 12</span>
+        <p class="q-label">Do you require a specific payment gateway to be integrated? If so, please clarify what you use and share any documentation / links possible.</p>
+        <textarea x-model="d.paymentGateway" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. We use Craftgate. Documentation at: …"></textarea>
+      </div>
+
+      <!-- Q13 -->
+      <div class="q-card">
+        <span class="q-num">Question 13</span>
+        <p class="q-label">Is the client paying to you or to the sub agent?</p>
+        <textarea x-model="d.payingParty" rows="2" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Payment goes directly to us. We would like to discuss the business case for sub-agent scenarios."></textarea>
+      </div>
+
+      <!-- Q14 -->
+      <div class="q-card">
+        <span class="q-num">Question 14</span>
+        <p class="q-label">Explain the payment terms and system.</p>
+        <textarea x-model="d.paymentTerms" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Payment terms: 30 days net. Deposit of 20% at booking. Balance due 14 days before departure…"></textarea>
+      </div>
+
+      <!-- Q15 -->
+      <div class="q-card">
+        <span class="q-num">Question 15</span>
+        <p class="q-label">Do you require any local mid or back office system integration(s) for B2B or B2C environment that are specific to your market/region? If so, please share documentation / links possible.</p>
+        <textarea x-model="d.backOffice" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. We use [system name]. API docs at: …  /  To be discussed."></textarea>
+      </div>
+
+      <!-- Q16 -->
+      <div class="q-card">
+        <span class="q-num">Question 16</span>
+        <p class="q-label">What application(s) do you use today?</p>
+        <div class="yn-row">
+          <div>
+            <label class="field-label">B2B</label>
+            <select x-model="d.currentApps.b2b" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">B2C</label>
+            <select x-model="d.currentApps.b2c" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">B2B2C</label>
+            <select x-model="d.currentApps.b2b2c" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q17 -->
+      <div class="q-card">
+        <span class="q-num">Question 17</span>
+        <p class="q-label">What application(s) would you like to deploy in the future?</p>
+        <div class="yn-row">
+          <div>
+            <label class="field-label">B2B</label>
+            <select x-model="d.futureApps.b2b" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">B2C</label>
+            <select x-model="d.futureApps.b2c" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">B2B2C</label>
+            <select x-model="d.futureApps.b2b2c" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q18 -->
+      <div class="q-card">
+        <span class="q-num">Question 18</span>
+        <p class="q-label">Do you have an existing application that you are planning to replace?</p>
+        <div class="yn-row">
+          <div>
+            <label class="field-label">B2B</label>
+            <select x-model="d.replacingApps.b2b" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">B2C</label>
+            <select x-model="d.replacingApps.b2c" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">B2B2C</label>
+            <select x-model="d.replacingApps.b2b2c" @change="save()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
+              <option value="">Select…</option><option>Yes</option><option>No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q19 -->
+      <div class="q-card">
+        <span class="q-num">Question 19</span>
+        <p class="q-label">In the event you currently operate B2B2C application(s), can you please specify sites and/or partner companies?</p>
+        <textarea x-model="d.b2b2cPartners" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Garanti Bank, Yapı Kredi — white-label booking portal…"></textarea>
+      </div>
+
+      <!-- Q20 -->
+      <div class="q-card">
+        <span class="q-num">Question 20</span>
+        <p class="q-label">In the event you are a B2B operator, can you clarify who is the merchant of record — you or the sub agent?</p>
+        <input type="text" x-model="d.merchantOfRecord" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. We are the merchant of record / Sub agent is MoR" />
+      </div>
+
+      <!-- Q21 -->
+      <div class="q-card">
+        <span class="q-num">Question 21</span>
+        <p class="q-label">In the event you already operate a B2B application — specify the number of B2B agents contracted and % of agents producing 50 bookings per year or more.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="field-label">Nr of Sub Agents contracted</label>
+            <input type="number" x-model="d.b2bAgents.count" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 62" min="0" />
+          </div>
+          <div>
+            <label class="field-label">% of agents producing 50+ bookings / year</label>
+            <input type="text" x-model="d.b2bAgents.pct" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 50%" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Q22 -->
+      <div class="q-card">
+        <span class="q-num">Question 22</span>
+        <p class="q-label">Do you have any specific UI/UX requirements that we would need to take into account — e.g. login requirements, B2B profiles?</p>
+        <textarea x-model="d.uiRequirements" rows="4" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. SSO login with corporate IDP, custom agent profile hierarchy, RTL language support…"></textarea>
+      </div>
+
+      <!-- Q23 -->
+      <div class="q-card">
+        <span class="q-num">Question 23</span>
+        <p class="q-label">Do you have any other technical and/or content information you would like to share which you think would be relevant to ensure success for your market or region?</p>
+        <textarea x-model="d.otherInfo" rows="5" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Any additional context, integrations, compliance requirements, data residency needs, or special market considerations…"></textarea>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-40">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <button x-show="step > 1" @click="prevStep()"
+        class="flex items-center gap-2 px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </button>
+      <div x-show="step <= 1"></div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex gap-1.5">
+          <template x-for="i in 4" :key="i">
+            <div class="w-1.5 h-1.5 rounded-full" :style="step===i?'background:#3689FB':step>i?'background:#10B981':'background:#E2E8F0'"></div>
+          </template>
+        </div>
+
+        <button x-show="step < 4" @click="nextStep()"
+          class="flex items-center gap-2 px-6 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+          style="background:#3689FB;">
+          Continue
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <button x-show="step === 4" @click="submitForm()" :disabled="submitting"
+          class="flex items-center gap-2 px-6 py-2.5 text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          style="background:#3689FB;">
+          <svg x-show="!submitting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          <svg x-show="submitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          <span x-text="submitting ? 'Sending…' : 'Submit Questionnaire'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success overlay -->
+  <div x-show="submitted" class="fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(21,38,86,0.85);backdrop-filter:blur(4px);">
+    <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full mx-4 text-center">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#3689FB;">
+        <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h2 class="text-xl font-bold mb-2" style="color:#152656;">Questionnaire Submitted!</h2>
+      <p class="text-slate-500 text-sm mb-6">Thank you — your responses have been received. The Move team will be in touch shortly to confirm your onboarding call.</p>
+      <p class="text-xs text-slate-400">You can close this window.</p>
+    </div>
+  </div>
+
+  <script>
+    function hhForm() {
+      return {
+        step: 1,
+        submitting: false,
+        submitted: false,
+
+        stepLabels: [
+          { title: 'Company & Contacts', sub: 'Details & people' },
+          { title: 'Market & Routes', sub: 'Q1–Q7' },
+          { title: 'Content Sources', sub: 'Q8–Q10' },
+          { title: 'Operations & Tech', sub: 'Q11–Q23' },
+        ],
+
+        d: {
+          company:    { name:'', website:'', country:'', type:'' },
+          commercial: { name:'', title:'', email:'', phone:'' },
+          technical:  { name:'', title:'', email:'', phone:'' },
+
+          // Step 2
+          market:         '',
+          currencies:     '',
+          departureAirports: '',
+          destinations:   '',
+          routes: Array.from({length: 20}, () => ({ name:'', domestic:false, international:false })),
+          totalRoutes:    '',
+          revenueRoutePct:'',
+
+          // Step 3
+          airContent: Array.from({length: 10}, () => ({ airline:'', gds:'', tf:'', aggregator:'', direct:'', ndc:'', negotiated:'' })),
+          hotelContent: Array.from({length: 10}, () => ({ name:'', gds:'', bedbank:'', directConnect:'', aggregator:'', other:'' })),
+          nonAirContent: Array.from({length: 8}, () => ({ type:'', source:'', negotiated:'' })),
+
+          // Step 4
+          resellTourOps: '',
+          tourOperators: Array.from({length: 8}, () => ({ name:'', connection:'' })),
+          paymentGateway:  '',
+          payingParty:     '',
+          paymentTerms:    '',
+          backOffice:      '',
+          currentApps:  { b2b:'', b2c:'', b2b2c:'' },
+          futureApps:   { b2b:'', b2c:'', b2b2c:'' },
+          replacingApps:{ b2b:'', b2c:'', b2b2c:'' },
+          b2b2cPartners:   '',
+          merchantOfRecord:'',
+          b2bAgents: { count:'', pct:'' },
+          uiRequirements:  '',
+          otherInfo:       '',
+        },
+
+        init() {
+          try {
+            const saved = localStorage.getItem('move_hh_v2');
+            if (saved) { const p = JSON.parse(saved); this.d = p.d || this.d; this.step = p.step || 1; }
+          } catch(e){}
+          this.$watch('d', () => this.save(), { deep: true });
+        },
+
+        save() {
+          try { localStorage.setItem('move_hh_v2', JSON.stringify({ d: this.d, step: this.step })); } catch(e){}
+        },
+
+        nextStep() { if (this.step < 4) { this.step++; this.save(); window.scrollTo({top:0,behavior:'smooth'}); } },
+        prevStep() { if (this.step > 1) { this.step--; window.scrollTo({top:0,behavior:'smooth'}); } },
+        goToStep(s) { this.step = s; this.save(); window.scrollTo({top:0,behavior:'smooth'}); },
+
+        async submitForm() {
+          this.submitting = true;
+          try {
+            const res = await fetch('/submit/holidayheroes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.d),
+            });
+            const json = await res.json();
+            if (!json.ok) throw new Error(json.error || 'Submission failed');
+            this.submitted = true;
+            localStorage.removeItem('move_hh_v2');
+          } catch (err) {
+            console.error(err);
+            alert('Could not submit. Please try again or contact your account manager.');
+          } finally {
+            this.submitting = false;
+          }
+        },
+      };
+    }
+  </script>
+</body>
+</html>

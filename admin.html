@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Move — Submissions Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="move.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F9FC; }
+    .panel-enter { opacity: 0; transform: translateX(24px); }
+    .panel-enter-active { opacity: 1; transform: translateX(0); transition: all 0.2s ease-out; }
+    .detail-row { display: grid; grid-template-columns: 180px 1fr; gap: 4px 16px; padding: 6px 0; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #94A3B8; font-weight: 500; }
+    .detail-value { color: #1E293B; font-weight: 500; word-break: break-word; }
+    .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #94A3B8; padding: 12px 0 6px; }
+  </style>
+</head>
+<body x-data="adminDashboard()" x-init="init()" x-cloak>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white" style="border-bottom:1px solid #E2E8F0; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <img src="move.svg" alt="Move" class="h-6 w-auto" />
+        <span class="text-xs font-semibold text-slate-400 hidden sm:block">/ Submissions Dashboard</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="load()" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
+          <svg class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Refresh
+        </button>
+        <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg text-white" style="background:#152656;">
+          + New Submission
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-6 py-8 flex gap-6">
+
+    <!-- Left: Table -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Stats -->
+      <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+          <p class="text-3xl font-bold" style="color:#152656;" x-text="submissions.length"></p>
+          <p class="text-xs text-slate-400 mt-0.5">submissions</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">HolidayHeroes</p>
+          <p class="text-3xl font-bold" style="color:#D97706;" x-text="submissions.filter(s => s.platform === 'holidayheroes').length"></p>
+          <p class="text-xs text-slate-400 mt-0.5">partners</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Ratecore</p>
+          <p class="text-3xl font-bold" style="color:#3689FB;" x-text="submissions.filter(s => s.platform === 'ratecore').length"></p>
+          <p class="text-xs text-slate-400 mt-0.5">partners</p>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="flex items-center gap-2 mb-4">
+        <button @click="filter = 'all'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+          :class="filter === 'all' ? 'text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'"
+          :style="filter === 'all' ? 'background:#152656' : ''">
+          All
+        </button>
+        <button @click="filter = 'holidayheroes'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+          :class="filter === 'holidayheroes' ? '' : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'"
+          :style="filter === 'holidayheroes' ? 'background:#FFF8E6;color:#D97706;border:1.5px solid #D97706' : ''">
+          HolidayHeroes
+        </button>
+        <button @click="filter = 'ratecore'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+          :class="filter === 'ratecore' ? '' : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'"
+          :style="filter === 'ratecore' ? 'background:#EBF3FF;color:#3689FB;border:1.5px solid #3689FB' : ''">
+          Ratecore
+        </button>
+        <div class="ml-auto text-xs text-slate-400" x-text="filtered.length + ' result' + (filtered.length !== 1 ? 's' : '')"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div x-show="!loading && filtered.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#F1F5F9;">
+          <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <p class="font-semibold text-slate-700">No submissions yet</p>
+        <p class="text-xs text-slate-400 mt-1">Submissions will appear here after partners complete the onboarding form.</p>
+      </div>
+
+      <!-- Loading state -->
+      <div x-show="loading" class="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+        <div class="w-8 h-8 border-2 border-slate-200 rounded-full mx-auto mb-3" style="border-top-color:#3689FB; animation:spin 0.8s linear infinite;"></div>
+        <p class="text-xs text-slate-400">Loading submissions...</p>
+      </div>
+
+      <!-- Table -->
+      <div x-show="!loading && filtered.length > 0" class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr style="background:#F8FAFC; border-bottom:1px solid #E2E8F0;">
+              <th class="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Date</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Partner</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Platform</th>
+              <th class="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact</th>
+              <th class="text-right px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="sub in filtered" :key="sub.id">
+              <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors"
+                :class="selected?.id === sub.id ? 'bg-blue-50' : ''"
+                @click="select(sub)">
+                <td class="px-5 py-4 text-xs text-slate-500" x-text="formatDate(sub.submittedAt)"></td>
+                <td class="px-5 py-4">
+                  <p class="text-sm font-semibold text-slate-800" x-text="sub.partnerName || '—'"></p>
+                  <p class="text-xs text-slate-400" x-text="sub.data?.company?.website || ''"></p>
+                </td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                    :style="sub.platform === 'holidayheroes' ? 'background:#FFF8E6;color:#D97706' : 'background:#EBF3FF;color:#3689FB'"
+                    x-text="sub.platform === 'holidayheroes' ? 'HolidayHeroes' : 'Ratecore'">
+                  </span>
+                </td>
+                <td class="px-5 py-4">
+                  <p class="text-xs text-slate-700" x-text="sub.data?.commercial?.name || '—'"></p>
+                  <p class="text-xs text-slate-400" x-text="sub.data?.commercial?.email || ''"></p>
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <button @click.stop="select(sub)" class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                    :style="selected?.id === sub.id ? 'background:#EBF3FF;color:#3689FB' : 'background:#F1F5F9;color:#475569'">
+                    View
+                  </button>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right: Detail Panel -->
+    <div x-show="selected" x-transition:enter="panel-enter" x-transition:enter-active="panel-enter-active"
+      class="w-96 flex-shrink-0">
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto">
+
+        <!-- Panel header -->
+        <div class="p-5 border-b border-slate-100 flex items-start justify-between" style="background:#F8FAFC;">
+          <div>
+            <p class="font-bold text-slate-800" x-text="selected?.partnerName"></p>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold mt-1"
+              :style="selected?.platform === 'holidayheroes' ? 'background:#FFF8E6;color:#D97706' : 'background:#EBF3FF;color:#3689FB'"
+              x-text="selected?.platform === 'holidayheroes' ? 'HolidayHeroes' : 'Ratecore'">
+            </span>
+          </div>
+          <button @click="selected = null" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-400">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="p-5">
+
+          <!-- Company Info -->
+          <p class="section-title">Company</p>
+          <div class="detail-row"><span class="detail-label">Website</span><span class="detail-value" x-text="selected?.data?.company?.website || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">Markets</span><span class="detail-value" x-text="selected?.data?.company?.primaryMarkets || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">Platforms</span><span class="detail-value" x-text="selected?.data?.company?.appPlatforms || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">Reg. Number</span><span class="detail-value" x-text="selected?.data?.company?.regNumber || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">VAT</span><span class="detail-value" x-text="selected?.data?.company?.vatNumber || '—'"></span></div>
+
+          <!-- Commercial Contact -->
+          <p class="section-title">Commercial Contact</p>
+          <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value" x-text="(selected?.data?.commercial?.name || '') + (selected?.data?.commercial?.title ? ' · ' + selected?.data?.commercial?.title : '')"></span></div>
+          <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value" x-text="selected?.data?.commercial?.email || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value" x-text="selected?.data?.commercial?.phone || '—'"></span></div>
+
+          <!-- Technical Contact -->
+          <p class="section-title">Technical Contact</p>
+          <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value" x-text="(selected?.data?.technical?.name || '') + (selected?.data?.technical?.title ? ' · ' + selected?.data?.technical?.title : '')"></span></div>
+          <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value" x-text="selected?.data?.technical?.email || '—'"></span></div>
+          <template x-if="selected?.data?.technical?.github">
+            <div class="detail-row"><span class="detail-label">GitHub</span><span class="detail-value" x-text="selected?.data?.technical?.github"></span></div>
+          </template>
+
+          <!-- Finance -->
+          <p class="section-title">Finance</p>
+          <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value" x-text="selected?.data?.finance?.name || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value" x-text="selected?.data?.finance?.email || '—'"></span></div>
+          <div class="detail-row"><span class="detail-label">Currency</span><span class="detail-value" x-text="selected?.data?.finance?.currency || '—'"></span></div>
+
+          <!-- Volume Forecast -->
+          <p class="section-title">Volume Forecast (12-month totals)</p>
+          <div class="detail-row">
+            <span class="detail-label">Total Sessions</span>
+            <span class="detail-value" x-text="(selected?.data?.months || []).reduce((s,m) => s + (Number(m.sessions)||0), 0).toLocaleString()"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total Bookings</span>
+            <span class="detail-value" x-text="(selected?.data?.months || []).reduce((s,m) => s + (Number(m.bookings)||0), 0).toLocaleString()"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total GBV</span>
+            <span class="detail-value" x-text="'€' + (selected?.data?.months || []).reduce((s,m) => s + (Number(m.bookings)||0)*(Number(m.avgValue)||0), 0).toLocaleString()"></span>
+          </div>
+          <div class="detail-row"><span class="detail-label">Peak Months</span><span class="detail-value" x-text="selected?.data?.forecast?.peakMonths || '—'"></span></div>
+
+          <!-- Routes -->
+          <p class="section-title">Routes & Markets</p>
+          <div class="detail-row">
+            <span class="detail-label">Top Airports</span>
+            <span class="detail-value" x-text="(selected?.data?.airports || []).filter(a => a.name).map(a => a.iata || a.name).join(', ') || '—'"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Top Destinations</span>
+            <span class="detail-value" x-text="(selected?.data?.destinations || []).filter(d => d.cityRegion).map(d => d.cityRegion).join(', ') || '—'"></span>
+          </div>
+          <div class="detail-row"><span class="detail-label">Segments</span><span class="detail-value" x-text="selected?.data?.segments?.primarySegments || '—'"></span></div>
+
+          <!-- Platform specific -->
+          <template x-if="selected?.platform === 'holidayheroes'">
+            <div>
+              <p class="section-title">Market & Routes</p>
+              <div class="detail-row"><span class="detail-label">Market</span><span class="detail-value" x-text="selected?.data?.market || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Currencies</span><span class="detail-value" x-text="selected?.data?.currencies || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Dep. Airports</span><span class="detail-value" x-text="selected?.data?.departureAirports || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Total Routes</span><span class="detail-value" x-text="selected?.data?.totalRoutes || '—'"></span></div>
+              <p class="section-title">Operations</p>
+              <div class="detail-row"><span class="detail-label">Payment GW</span><span class="detail-value" x-text="selected?.data?.paymentGateway || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Merchant</span><span class="detail-value" x-text="selected?.data?.merchantOfRecord || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Current Apps</span><span class="detail-value" x-text="'B2B:' + (selected?.data?.currentApps?.b2b||'?') + '  B2C:' + (selected?.data?.currentApps?.b2c||'?') + '  B2B2C:' + (selected?.data?.currentApps?.b2b2c||'?')"></span></div>
+              <div class="detail-row"><span class="detail-label">B2B Agents</span><span class="detail-value" x-text="(selected?.data?.b2bAgents?.count || '—') + ' agents · ' + (selected?.data?.b2bAgents?.pct || '—') + ' >50 bkgs/yr'"></span></div>
+            </div>
+          </template>
+
+          <template x-if="selected?.platform === 'ratecore'">
+            <div>
+              <p class="section-title">Technical Details</p>
+              <div class="detail-row"><span class="detail-label">Frontend</span><span class="detail-value" x-text="selected?.data?.tech?.frontendFramework || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Backend</span><span class="detail-value" x-text="selected?.data?.tech?.backendLanguage || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">API</span><span class="detail-value" x-text="selected?.data?.tech?.apiPreference || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Auth</span><span class="detail-value" x-text="selected?.data?.tech?.authMethod || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Hosting</span><span class="detail-value" x-text="selected?.data?.tech?.hostingProvider || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">GDS</span><span class="detail-value" x-text="selected?.data?.integrations?.gds || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Payment</span><span class="detail-value" x-text="selected?.data?.integrations?.paymentProvider || '—'"></span></div>
+              <div class="detail-row"><span class="detail-label">Primary Color</span>
+                <span class="detail-value flex items-center gap-2">
+                  <span class="w-4 h-4 rounded border border-slate-200 inline-block" :style="'background:' + (selected?.data?.branding?.primaryColor || '#000')"></span>
+                  <span x-text="selected?.data?.branding?.primaryColor || '—'"></span>
+                </span>
+              </div>
+              <div class="detail-row"><span class="detail-label">GDPR</span><span class="detail-value" x-text="selected?.data?.compliance?.gdpr || '—'"></span></div>
+            </div>
+          </template>
+
+          <!-- Submitted at -->
+          <p class="text-xs text-slate-400 text-center mt-6" x-text="'Submitted ' + formatDate(selected?.submittedAt)"></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+
+  <script>
+    function adminDashboard() {
+      return {
+        submissions: [],
+        filter: 'all',
+        selected: null,
+        loading: false,
+
+        get filtered() {
+          if (this.filter === 'all') return this.submissions;
+          return this.submissions.filter(s => s.platform === this.filter);
+        },
+
+        async init() {
+          await this.load();
+        },
+
+        async load() {
+          this.loading = true;
+          try {
+            const res = await fetch('/admin/submissions');
+            if (!res.ok) throw new Error('Failed to load');
+            this.submissions = await res.json();
+          } catch (err) {
+            console.error(err);
+            this.submissions = [];
+          } finally {
+            this.loading = false;
+          }
+        },
+
+        select(sub) {
+          this.selected = this.selected?.id === sub.id ? null : sub;
+        },
+
+        formatDate(iso) {
+          if (!iso) return '—';
+          try {
+            return new Date(iso).toLocaleDateString('en-GB', {
+              day: 'numeric', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit',
+            });
+          } catch {
+            return iso;
+          }
+        },
+      };
+    }
+  </script>
+</body>
+</html>
