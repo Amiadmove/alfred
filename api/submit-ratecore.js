@@ -166,20 +166,35 @@ module.exports = async function handler(req, res) {
 
     // Send email via Resend
     if (process.env.RESEND_API_KEY) {
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'Move Onboarding <onboarding@resend.dev>',
-          to: [NOTIFY_EMAIL],
-          subject: `New Ratecore Onboarding — ${partnerName}`,
-          text: `New Ratecore partner onboarding submitted.\n\nPartner: ${partnerName}\nContact: ${d.commercial?.name||'—'} (${d.commercial?.email||'—'})\n\nExcel file attached.`,
-          attachments: [{ filename, content: Buffer.from(buffer).toString('base64') }],
+      const emails = [
+        // Admin notification
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'Move Onboarding <onboarding@resend.dev>',
+            to: [NOTIFY_EMAIL],
+            subject: `New Ratecore Onboarding — ${partnerName}`,
+            text: `New Ratecore partner onboarding submitted.\n\nPartner: ${partnerName}\nContact: ${d.commercial?.name||'—'} (${d.commercial?.email||'—'})\n\nExcel file attached.`,
+            attachments: [{ filename, content: Buffer.from(buffer).toString('base64') }],
+          }),
         }),
-      });
+      ];
+      // Confirmation email to partner
+      if (d.commercial?.email) {
+        const contactName = d.commercial?.name || partnerName;
+        emails.push(fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'Move Onboarding <onboarding@resend.dev>',
+            to: [d.commercial.email],
+            subject: `Thanks for completing your Move onboarding — ${partnerName}`,
+            html: `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F7F9FC;padding:40px 16px;margin:0;"><div style="max-width:560px;margin:0 auto;background:white;border-radius:20px;padding:40px;border:1px solid #E2E8F0;"><p style="font-size:15px;font-weight:700;color:#3689FB;margin:0 0 32px;letter-spacing:-0.3px;">Move</p><h1 style="font-size:22px;font-weight:700;color:#152656;margin:0 0 16px;">Thanks for completing your onboarding!</h1><p style="color:#64748B;font-size:14px;line-height:1.7;margin:0 0 6px;">Hi ${contactName},</p><p style="color:#64748B;font-size:14px;line-height:1.7;margin:0 0 24px;">We've received your Move partner onboarding questionnaire. Our team will review your submission and reach out within <strong style="color:#152656;">2 business days</strong> to discuss next steps.</p><div style="background:#F7F9FC;border-radius:12px;padding:20px;margin-bottom:28px;"><p style="color:#152656;font-size:13px;font-weight:600;margin:0 0 12px;">What happens next</p><div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start;"><span style="color:#3689FB;font-weight:700;font-size:13px;min-width:16px;">1.</span><span style="color:#64748B;font-size:13px;">Our team reviews your submission</span></div><div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start;"><span style="color:#3689FB;font-weight:700;font-size:13px;min-width:16px;">2.</span><span style="color:#64748B;font-size:13px;">We schedule a technical kickoff call</span></div><div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:#3689FB;font-weight:700;font-size:13px;min-width:16px;">3.</span><span style="color:#64748B;font-size:13px;">Integration and onboarding begin</span></div></div><p style="color:#94A3B8;font-size:12px;line-height:1.6;margin:0;">Questions? Reply to this email or contact your Move account manager.<br/><br/><strong style="color:#152656;">Move</strong> · The commerce infrastructure for AI travel</p></div></body></html>`,
+          }),
+        }));
+      }
+      await Promise.allSettled(emails);
     }
 
     res.status(200).json({ ok: true, filename });
