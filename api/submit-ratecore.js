@@ -149,12 +149,12 @@ module.exports = async function handler(req, res) {
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       try {
         const xlsxBlob = await put(`submissions/${id}.xlsx`, Buffer.from(buffer), {
-          access: 'public',
+          access: 'private',
           contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
         submissionData.excelUrl = xlsxBlob.url;
         await put(`submissions/${id}.json`, JSON.stringify(submissionData), {
-          access: 'public',
+          access: 'private',
           contentType: 'application/json',
         });
       } catch (blobErr) {
