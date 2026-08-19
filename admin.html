@@ -277,6 +277,19 @@
       <!-- Company -->
       <div class="bg-white rounded-2xl border border-slate-200 p-5">
         <p class="section-title" style="padding-top:0;">Company</p>
+        <!-- Partner Logo -->
+        <div x-show="selected?.data?.company?.logoBase64" class="mb-4 pb-4" style="border-bottom:1px solid #F1F5F9;">
+          <p class="text-xs text-slate-400 font-medium mb-2">Partner Logo</p>
+          <div class="flex items-center gap-3">
+            <img :src="selected?.data?.company?.logoBase64" :alt="selected?.data?.company?.logoName || 'Logo'"
+              class="h-10 max-w-[160px] object-contain rounded border border-slate-100 p-1 bg-white" />
+            <a :href="selected?.data?.company?.logoBase64" :download="selected?.data?.company?.logoName || 'logo'"
+              class="text-xs font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1" style="background:#EBF3FF;color:#3689FB;">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              Download
+            </a>
+          </div>
+        </div>
         <div x-show="!editMode">
           <div class="detail-row"><span class="detail-label">Company Name</span><span class="detail-value" x-text="selected?.data?.company?.name || selected?.partnerName || '—'"></span></div>
           <div class="detail-row"><span class="detail-label">Website</span><span class="detail-value" x-text="selected?.data?.company?.website || '—'"></span></div>
