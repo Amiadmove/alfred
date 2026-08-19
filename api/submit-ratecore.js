@@ -1,5 +1,4 @@
 const xlsx = require('xlsx');
-const nodemailer = require('nodemailer');
 const { put } = require('@vercel/blob');
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'amiad@alfredtravel.io';
@@ -165,20 +164,21 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Send email
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: false,
-        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      });
-      await transporter.sendMail({
-        from: `"Move Onboarding" <${process.env.SMTP_USER}>`,
-        to: NOTIFY_EMAIL,
-        subject: `New Ratecore Onboarding — ${partnerName}`,
-        text: `New Ratecore partner onboarding submitted.\n\nPartner: ${partnerName}\nContact: ${d.commercial?.name||'—'} (${d.commercial?.email||'—'})\n\nExcel file attached.`,
-        attachments: [{ filename, content: buffer }],
+    // Send email via Resend
+    if (process.env.RESEND_API_KEY) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Move Onboarding <onboarding@resend.dev>',
+          to: [NOTIFY_EMAIL],
+          subject: `New Ratecore Onboarding — ${partnerName}`,
+          text: `New Ratecore partner onboarding submitted.\n\nPartner: ${partnerName}\nContact: ${d.commercial?.name||'—'} (${d.commercial?.email||'—'})\n\nExcel file attached.`,
+          attachments: [{ filename, content: Buffer.from(buffer).toString('base64') }],
+        }),
       });
     }
 
