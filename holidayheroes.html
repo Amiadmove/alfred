@@ -6,6 +6,7 @@
   <title>Move — HolidayHeroes Onboarding</title>
   <link rel="icon" type="image/svg+xml" href="move.svg" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -108,15 +109,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <div>
             <label class="field-label">Company Name <span style="color:#3689FB;">*</span></label>
-            <input type="text" x-model="d.company.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Setur Travel" />
+            <input type="text" x-model="d.company.name" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. TUI GmbH" />
           </div>
           <div>
             <label class="field-label">Website</label>
-            <input type="text" x-model="d.company.website" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. setur.com.tr" />
+            <input type="text" x-model="d.company.website" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. tui.com" />
           </div>
           <div>
             <label class="field-label">Country / HQ Location</label>
-            <input type="text" x-model="d.company.country" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Turkey" />
+            <input type="text" x-model="d.company.country" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Germany" />
           </div>
           <div>
             <label class="field-label">Company Type</label>
@@ -193,21 +194,21 @@
       <div class="q-card">
         <span class="q-num">Question 1</span>
         <p class="q-label">In which market are you operating?</p>
-        <textarea x-model="d.market" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Outbound mainly Europe, Dubai, Egypt, Thailand, Japan…"></textarea>
+        <textarea x-model="d.market" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Outbound mainly Mediterranean, Caribbean, Southeast Asia, USA…"></textarea>
       </div>
 
       <!-- Q2 -->
       <div class="q-card">
         <span class="q-num">Question 2</span>
         <p class="q-label">In which currency are you selling?</p>
-        <input type="text" x-model="d.currencies" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. TRY, EUR, USD (invoice: TRY, display: 2 currencies)" />
+        <input type="text" x-model="d.currencies" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. EUR, USD (invoice: EUR, display: 2 currencies)" />
       </div>
 
       <!-- Q3 -->
       <div class="q-card">
         <span class="q-num">Question 3</span>
         <p class="q-label">What origin departure airports do you want to be included in the application(s)?</p>
-        <textarea x-model="d.departureAirports" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Istanbul (IST, SAW), Ankara (ESB), Izmir (ADB), Antalya (ANT), Dalaman (DLM)…"></textarea>
+        <textarea x-model="d.departureAirports" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Frankfurt (FRA), Munich (MUC), Berlin (BER), Hamburg (HAM), Düsseldorf (DUS)…"></textarea>
         <p class="text-xs text-slate-400 mt-2">List IATA codes where possible.</p>
       </div>
 
@@ -215,7 +216,24 @@
       <div class="q-card">
         <span class="q-num">Question 4</span>
         <p class="q-label">What destinations are relevant for your market/region?<br><span class="font-normal text-slate-500" style="font-size:13px;">Name the destinations which make 80% of your revenue.</span></p>
-        <textarea x-model="d.destinations" rows="6" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g.&#10;Northern Cyprus (Lefkosa)&#10;Germany: Berlin, Munich, Frankfurt, Hamburg…&#10;France: Paris, Nice, Lyon&#10;UK: London, Manchester, Edinburgh&#10;UAE: Dubai, Abu Dhabi"></textarea>
+        <div class="border border-slate-200 rounded-xl px-3 py-2.5 min-h-[80px] flex flex-wrap gap-2 items-start cursor-text focus-within:border-blue-400 transition-colors"
+          @click="$refs.destInput.focus()">
+          <template x-for="(tag, i) in d.destinationTags" :key="i">
+            <span class="inline-flex items-center gap-1.5 pl-3 pr-2 py-1 rounded-lg text-sm font-medium flex-shrink-0" style="background:#EBF3FF;color:#152656;">
+              <span x-text="tag"></span>
+              <button @click.prevent="removeDestination(i)" type="button" class="hover:text-red-500 transition-colors ml-0.5" style="color:#94A3B8;">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </span>
+          </template>
+          <input x-ref="destInput" type="text" x-model="destInput"
+            @keydown.enter.prevent="addDestination()"
+            @keydown.188.prevent="addDestination()"
+            @keydown.backspace="if(!destInput && d.destinationTags.length) removeDestination(d.destinationTags.length - 1)"
+            class="flex-1 min-w-36 outline-none bg-transparent text-sm py-1"
+            placeholder="e.g. Mallorca, Crete, Dubai… (Enter to add)" />
+        </div>
+        <p class="text-xs text-slate-400 mt-2">Press <kbd class="px-1.5 py-0.5 rounded text-xs" style="background:#F1F5F9;">Enter</kbd> or <kbd class="px-1.5 py-0.5 rounded text-xs" style="background:#F1F5F9;">,</kbd> after each destination. Backspace removes the last one.</p>
       </div>
 
       <!-- Q5: Top 20 Routes table -->
@@ -236,7 +254,7 @@
               <template x-for="(r, i) in d.routes" :key="i">
                 <tr>
                   <td class="text-center text-xs font-medium text-slate-400" x-text="i+1"></td>
-                  <td><input type="text" x-model="r.name" @input="save()" class="table-input" placeholder="e.g. Istanbul – London" /></td>
+                  <td><input type="text" x-model="r.name" @input="save()" class="table-input" placeholder="e.g. BER – LON" /></td>
                   <td class="text-center">
                     <input type="checkbox" x-model="r.domestic" @change="save()" class="w-4 h-4 rounded" style="accent-color:#3689FB;" />
                   </td>
@@ -294,7 +312,7 @@
             <tbody>
               <template x-for="(a, i) in d.airContent" :key="i">
                 <tr>
-                  <td><input type="text" x-model="a.airline" @input="save()" class="table-input" placeholder="e.g. Turkish Airlines" /></td>
+                  <td><input type="text" x-model="a.airline" @input="save()" class="table-input" placeholder="e.g. Lufthansa" /></td>
                   <td><input type="text" x-model="a.gds" @input="save()" class="table-input" placeholder="e.g. Amadeus" /></td>
                   <td><input type="text" x-model="a.tf" @input="save()" class="table-input text-center" placeholder="—" /></td>
                   <td><input type="text" x-model="a.aggregator" @input="save()" class="table-input" placeholder="—" /></td>
@@ -318,7 +336,6 @@
             </tbody>
           </table>
         </div>
-        <p class="text-xs text-slate-400 mt-2">TF = Technical Facilitation</p>
       </div>
 
       <!-- Q9: Hotel content -->
@@ -539,7 +556,7 @@
       <div class="q-card">
         <span class="q-num">Question 19</span>
         <p class="q-label">In the event you currently operate B2B2C application(s), can you please specify sites and/or partner companies?</p>
-        <textarea x-model="d.b2b2cPartners" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Garanti Bank, Yapı Kredi — white-label booking portal…"></textarea>
+        <textarea x-model="d.b2b2cPartners" rows="3" @input="save()" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. DKB, Commerzbank — white-label booking portal…"></textarea>
       </div>
 
       <!-- Q20 -->
@@ -765,14 +782,136 @@
   </div>
 
   <!-- Success overlay -->
-  <div x-show="submitted" class="fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(21,38,86,0.85);backdrop-filter:blur(4px);">
-    <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full mx-4 text-center">
-      <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#3689FB;">
-        <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+  <div x-show="submitted" class="fixed inset-0 z-50" style="background:rgba(21,38,86,0.9);backdrop-filter:blur(4px);">
+
+    <!-- Confirmation card -->
+    <div x-show="!showSummary" class="flex items-center justify-center min-h-full p-4">
+      <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-md w-full text-center">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#3689FB;">
+          <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h2 class="text-xl font-bold mb-2" style="color:#152656;">Questionnaire Submitted!</h2>
+        <p class="text-slate-500 text-sm mb-8">Thank you — your responses have been received. The Move team will be in touch shortly to confirm your onboarding call.</p>
+        <button @click="showSummary = true"
+          class="w-full py-3 rounded-xl text-sm font-semibold text-white mb-3 flex items-center justify-center gap-2"
+          style="background:#3689FB;">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          View My Submission Summary
+        </button>
+        <button @click="window.close()" class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors">
+          Close Window
+        </button>
       </div>
-      <h2 class="text-xl font-bold mb-2" style="color:#152656;">Questionnaire Submitted!</h2>
-      <p class="text-slate-500 text-sm mb-6">Thank you — your responses have been received. The Move team will be in touch shortly to confirm your onboarding call.</p>
-      <p class="text-xs text-slate-400">You can close this window.</p>
+    </div>
+
+    <!-- Full-screen summary -->
+    <div x-show="showSummary" class="min-h-full overflow-y-auto" style="background:#F7F9FC;">
+      <div class="sticky top-0 z-10 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between" style="box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div class="flex items-center gap-3">
+          <img src="move.svg" alt="Move" class="h-6 w-auto" />
+          <span class="text-sm font-semibold text-slate-600" x-text="(d.company?.name || 'Partner') + ' — Submission Summary'"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button @click="downloadSummary()" class="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg" style="background:#F0FDF4;color:#16A34A;">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+            Download Excel
+          </button>
+          <button onclick="window.print()" class="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg" style="background:#EBF3FF;color:#3689FB;">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Print / PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="max-w-3xl mx-auto px-6 py-8">
+        <div class="rounded-2xl p-4 mb-6 flex items-center gap-4" style="background:#ECFDF5;border:1px solid #BBF7D0;">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:#16A34A;">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <p class="font-semibold text-green-800 text-sm">Successfully submitted</p>
+            <p class="text-green-700 text-xs mt-0.5">The Move team will be in touch shortly. This is a copy of your submitted data.</p>
+          </div>
+        </div>
+
+        <!-- Company & Contacts -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Company & Contacts</h3>
+          <div class="mb-4 space-y-0">
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Company Name</span><span class="text-slate-800 font-medium" x-text="d.company?.name || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Website</span><span class="text-slate-800 font-medium" x-text="d.company?.website || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Country</span><span class="text-slate-800 font-medium" x-text="d.company?.country || '—'"></span></div>
+            <div class="flex text-sm py-2"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Type</span><span class="text-slate-800 font-medium" x-text="d.company?.type || '—'"></span></div>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mt-4">
+            <div class="rounded-xl p-3" style="background:#F8FAFC;border:1px solid #E2E8F0;">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Commercial</p>
+              <p class="text-sm font-semibold text-slate-800" x-text="d.commercial?.name || '—'"></p>
+              <p class="text-xs text-slate-500 mt-0.5" x-text="d.commercial?.title || ''"></p>
+              <p class="text-xs text-slate-500 mt-1" x-text="d.commercial?.email || ''"></p>
+              <p class="text-xs text-slate-500" x-text="d.commercial?.phone || ''"></p>
+            </div>
+            <div class="rounded-xl p-3" style="background:#F8FAFC;border:1px solid #E2E8F0;">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Technical</p>
+              <p class="text-sm font-semibold text-slate-800" x-text="d.technical?.name || '—'"></p>
+              <p class="text-xs text-slate-500 mt-0.5" x-text="d.technical?.title || ''"></p>
+              <p class="text-xs text-slate-500 mt-1" x-text="d.technical?.email || ''"></p>
+              <p class="text-xs text-slate-500" x-text="d.technical?.phone || ''"></p>
+            </div>
+            <div x-show="d.finance?.name" class="rounded-xl p-3" style="background:#F8FAFC;border:1px solid #E2E8F0;">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Finance</p>
+              <p class="text-sm font-semibold text-slate-800" x-text="d.finance?.name || '—'"></p>
+              <p class="text-xs text-slate-500 mt-1" x-text="d.finance?.email || ''"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market & Routes -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Market & Routes</h3>
+          <div class="space-y-0">
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Market</span><span class="text-slate-800 font-medium" x-text="d.market || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Currencies</span><span class="text-slate-800 font-medium" x-text="d.currencies || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Dep. Airports</span><span class="text-slate-800 font-medium" x-text="d.departureAirports || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Destinations</span><span class="text-slate-800 font-medium" x-text="d.destinations || '—'"></span></div>
+            <div class="flex text-sm py-2"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Total Routes</span><span class="text-slate-800 font-medium" x-text="d.totalRoutes || '—'"></span></div>
+          </div>
+          <template x-if="(d.routes||[]).filter(r=>r.name).length > 0">
+            <div class="mt-4">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Top Routes</p>
+              <div class="flex flex-wrap gap-2">
+                <template x-for="r in (d.routes||[]).filter(r=>r.name)" :key="r.name">
+                  <span class="px-2.5 py-1 rounded-lg text-xs font-medium" style="background:#F1F5F9;color:#475569;" x-text="r.name"></span>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Operations & Technology -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Operations & Technology</h3>
+          <div class="space-y-0">
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Payment GW</span><span class="text-slate-800 font-medium" x-text="d.paymentGateway || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Paying Party</span><span class="text-slate-800 font-medium" x-text="d.payingParty || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Payment Terms</span><span class="text-slate-800 font-medium" x-text="d.paymentTerms || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Back Office</span><span class="text-slate-800 font-medium" x-text="d.backOffice || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Merchant</span><span class="text-slate-800 font-medium" x-text="d.merchantOfRecord || '—'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">B2B Agents</span><span class="text-slate-800 font-medium" x-text="(d.b2bAgents?.count || '—') + ' agents'"></span></div>
+            <div class="flex text-sm py-2 border-b border-slate-100"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Current B2B</span><span class="text-slate-800 font-medium" x-text="d.currentApps?.b2b || '—'"></span></div>
+            <div class="flex text-sm py-2"><span class="w-40 flex-shrink-0 text-slate-400 font-medium">Current B2C</span><span class="text-slate-800 font-medium" x-text="d.currentApps?.b2c || '—'"></span></div>
+          </div>
+        </div>
+
+        <template x-if="d.otherInfo">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Additional Notes</h3>
+            <p class="text-sm text-slate-600 leading-relaxed" x-text="d.otherInfo"></p>
+          </div>
+        </template>
+
+        <p class="text-center text-xs text-slate-400 mt-8">Move © 2025 · The commerce infrastructure for AI travel</p>
+      </div>
     </div>
   </div>
 
@@ -782,6 +921,8 @@
         step: 1,
         submitting: false,
         submitted: false,
+        showSummary: false,
+        destInput: '',
 
         stepLabels: [
           { title: 'Company & Contacts', sub: 'Details & people' },
@@ -801,6 +942,7 @@
           currencies:     '',
           departureAirports: '',
           destinations:   '',
+          destinationTags: [],
           routes: Array.from({length: 20}, () => ({ name:'', domestic:false, international:false })),
           totalRoutes:    '',
           revenueRoutePct:'',
@@ -865,9 +1007,75 @@
           this.save();
         },
 
+        addDestination() {
+          const val = this.destInput.trim().replace(/,+$/, '');
+          if (val && !this.d.destinationTags.includes(val)) {
+            this.d.destinationTags.push(val);
+            this.save();
+          }
+          this.destInput = '';
+        },
+
+        removeDestination(i) {
+          this.d.destinationTags.splice(i, 1);
+          this.save();
+        },
+
         nextStep() { if (this.step < 5) { this.step++; this.save(); window.scrollTo({top:0,behavior:'smooth'}); } },
         prevStep() { if (this.step > 1) { this.step--; window.scrollTo({top:0,behavior:'smooth'}); } },
         goToStep(s) { this.step = s; this.save(); window.scrollTo({top:0,behavior:'smooth'}); },
+
+        downloadSummary() {
+          const wb = XLSX.utils.book_new();
+          const rows = [
+            ['MOVE — HOLIDAYHEROES PARTNER ONBOARDING SUMMARY'],
+            [],
+            ['Company Name', this.d.company?.name || ''],
+            ['Website', this.d.company?.website || ''],
+            ['Country', this.d.company?.country || ''],
+            ['Type', this.d.company?.type || ''],
+            [],
+            ['COMMERCIAL CONTACT'],
+            ['Name', this.d.commercial?.name || ''],
+            ['Title', this.d.commercial?.title || ''],
+            ['Email', this.d.commercial?.email || ''],
+            ['Phone', this.d.commercial?.phone || ''],
+            [],
+            ['TECHNICAL CONTACT'],
+            ['Name', this.d.technical?.name || ''],
+            ['Title', this.d.technical?.title || ''],
+            ['Email', this.d.technical?.email || ''],
+            ['Phone', this.d.technical?.phone || ''],
+            [],
+            ['MARKET & ROUTES'],
+            ['Operating Market', this.d.market || ''],
+            ['Currencies', this.d.currencies || ''],
+            ['Departure Airports', this.d.departureAirports || ''],
+            ['Key Destinations', this.d.destinations || ''],
+            ['Total Routes', this.d.totalRoutes || ''],
+            ['Revenue Route %', this.d.revenueRoutePct || ''],
+            [],
+            ['TOP ROUTES'],
+            ...(this.d.routes||[]).filter(r=>r.name).map((r,i)=>[i+1, r.name, r.domestic?'Domestic':'', r.international?'International':'']),
+            [],
+            ['OPERATIONS & TECHNOLOGY'],
+            ['Payment Gateway', this.d.paymentGateway || ''],
+            ['Paying Party', this.d.payingParty || ''],
+            ['Payment Terms', this.d.paymentTerms || ''],
+            ['Back Office', this.d.backOffice || ''],
+            ['Merchant of Record', this.d.merchantOfRecord || ''],
+            ['B2B Agents', this.d.b2bAgents?.count || ''],
+            ['Current B2B', this.d.currentApps?.b2b || ''],
+            ['Current B2C', this.d.currentApps?.b2c || ''],
+            ['Current B2B2C', this.d.currentApps?.b2b2c || ''],
+            [],
+            ['ADDITIONAL NOTES'],
+            [this.d.otherInfo || ''],
+          ];
+          const ws = XLSX.utils.aoa_to_sheet(rows);
+          XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+          XLSX.writeFile(wb, 'HH_' + (this.d.company?.name || 'Partner').replace(/[^a-z0-9]/gi, '_') + '_Summary.xlsx');
+        },
 
         async submitForm() {
           this.submitting = true;
