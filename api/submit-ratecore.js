@@ -148,12 +148,12 @@ module.exports = async function handler(req, res) {
     // Save to Vercel Blob (optional — requires BLOB_READ_WRITE_TOKEN)
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const xlsxBlob = await put(`submissions/${id}.xlsx`, Buffer.from(buffer), {
-        access: 'private',
+        access: 'public',
         contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       submissionData.excelUrl = xlsxBlob.url;
       await put(`submissions/${id}.json`, JSON.stringify(submissionData), {
-        access: 'private',
+        access: 'public',
         contentType: 'application/json',
       });
     }
