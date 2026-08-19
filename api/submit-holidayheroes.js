@@ -156,16 +156,18 @@ module.exports = async function handler(req, res) {
       data: d,
     };
 
-    // Save to Vercel Blob
-    const xlsxBlob = await put(`submissions/${id}.xlsx`, Buffer.from(buffer), {
-      access: 'public',
-      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    submissionData.excelUrl = xlsxBlob.url;
-    await put(`submissions/${id}.json`, JSON.stringify(submissionData), {
-      access: 'public',
-      contentType: 'application/json',
-    });
+    // Save to Vercel Blob (optional — requires BLOB_READ_WRITE_TOKEN)
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const xlsxBlob = await put(`submissions/${id}.xlsx`, Buffer.from(buffer), {
+        access: 'public',
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      submissionData.excelUrl = xlsxBlob.url;
+      await put(`submissions/${id}.json`, JSON.stringify(submissionData), {
+        access: 'public',
+        contentType: 'application/json',
+      });
+    }
 
     // Send email
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
