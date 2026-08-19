@@ -22,6 +22,28 @@
 </head>
 <body x-data="adminDashboard()" x-init="init()" x-cloak>
 
+  <!-- Password Gate -->
+  <div x-show="!authed" class="min-h-screen flex items-center justify-center" style="background:#F7F9FC;">
+    <div class="bg-white rounded-2xl border border-slate-200 p-10 w-full max-w-sm text-center" style="box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+      <img src="move.svg" alt="Move" class="h-7 w-auto mx-auto mb-6" />
+      <h1 class="text-lg font-bold mb-1" style="color:#152656;">Admin Access</h1>
+      <p class="text-xs text-slate-400 mb-6">Enter the admin password to continue</p>
+      <form @submit.prevent="login()">
+        <input x-model="passwordInput" type="password" placeholder="Password"
+          class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:border-blue-400"
+          :class="loginError ? 'border-red-300' : ''" autofocus />
+        <p x-show="loginError" class="text-xs text-red-500 mb-3">Incorrect password</p>
+        <button type="submit" class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors"
+          style="background:#152656;">
+          Enter
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard (shown after login) -->
+  <div x-show="authed">
+
   <!-- Header -->
   <header class="sticky top-0 z-40 bg-white" style="border-bottom:1px solid #E2E8F0; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
     <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
@@ -140,12 +162,12 @@
                 </td>
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-2">
-                    <a x-show="sub.excelUrl" :href="'/api/download-excel?url=' + encodeURIComponent(sub.excelUrl)" @click.stop
+                    <button x-show="sub.excelUrl" @click.stop="downloadExcel(sub)"
                       class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                       style="background:#F0FDF4;color:#16A34A;">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                       Excel
-                    </a>
+                    </button>
                     <button @click.stop="select(sub)" class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
                       :style="selected?.id === sub.id ? 'background:#EBF3FF;color:#3689FB' : 'background:#F1F5F9;color:#475569'">
                       View
@@ -280,6 +302,8 @@
 
   </div>
 
+  </div><!-- end authed -->
+
   <style>
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   </style>
@@ -287,10 +311,20 @@
   <script>
     function adminDashboard() {
       return {
+        authed: false,
+        passwordInput: '',
+        loginError: false,
         submissions: [],
         filter: 'all',
         selected: null,
         loading: false,
+
+        login() {
+          sessionStorage.setItem('adminPwd', this.passwordInput);
+          this.authed = true;
+          this.loginError = false;
+          this.load();
+        },
 
         get filtered() {
           if (this.filter === 'all') return this.submissions;
@@ -298,13 +332,17 @@
         },
 
         async init() {
-          await this.load();
+          const saved = sessionStorage.getItem('adminPwd');
+          if (saved) { this.passwordInput = saved; this.authed = true; await this.load(); }
         },
 
         async load() {
           this.loading = true;
           try {
-            const res = await fetch('/api/admin-submissions');
+            const res = await fetch('/api/admin-submissions', {
+              headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+            });
+            if (res.status === 401) { this.authed = false; this.loginError = true; this.loading = false; return; }
             if (!res.ok) throw new Error('Failed to load');
             this.submissions = await res.json();
           } catch (err) {
@@ -339,6 +377,18 @@
           const ws = XLSX.utils.json_to_sheet(rows);
           XLSX.utils.book_append_sheet(wb, ws, 'Submissions');
           XLSX.writeFile(wb, `Move_Submissions_${new Date().toISOString().slice(0,10)}.xlsx`);
+        },
+
+        async downloadExcel(sub) {
+          const res = await fetch('/api/download-excel?url=' + encodeURIComponent(sub.excelUrl), {
+            headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+          });
+          if (!res.ok) return;
+          const blob = await res.blob();
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = sub.partnerName.replace(/[^a-z0-9]/gi, '_') + '.xlsx';
+          a.click();
         },
 
         formatDate(iso) {
