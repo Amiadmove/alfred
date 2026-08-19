@@ -10,7 +10,9 @@ module.exports = async function handler(req, res) {
     const submissions = await Promise.all(
       jsonBlobs.map(async b => {
         try {
-          const resp = await fetch(b.url);
+          const resp = await fetch(b.url, {
+            headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+          });
           return await resp.json();
         } catch {
           return null;
