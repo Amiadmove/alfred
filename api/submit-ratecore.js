@@ -1,5 +1,6 @@
 const xlsx = require('xlsx');
 const nodemailer = require('nodemailer');
+const { put } = require('@vercel/blob');
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'amiad@alfredtravel.io';
 
@@ -132,13 +133,34 @@ module.exports = async function handler(req, res) {
   try {
     const d = req.body;
     const partnerName = d.company?.name || 'Unknown';
+    const id = Date.now().toString();
     const buffer = buildExcel(d);
     const filename = `RC_${partnerName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`;
 
+    const submissionData = {
+      id,
+      platform: 'ratecore',
+      partnerName,
+      submittedAt: new Date().toISOString(),
+      data: d,
+    };
+
+    // Save to Vercel Blob
+    const xlsxBlob = await put(`submissions/${id}.xlsx`, Buffer.from(buffer), {
+      access: 'public',
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    submissionData.excelUrl = xlsxBlob.url;
+    await put(`submissions/${id}.json`, JSON.stringify(submissionData), {
+      access: 'public',
+      contentType: 'application/json',
+    });
+
+    // Send email
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 587,
+        port: Number(process.env.SMTP_PORT) || 587,
         secure: false,
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });

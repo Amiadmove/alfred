@@ -6,6 +6,7 @@
   <title>Move — Submissions Dashboard</title>
   <link rel="icon" type="image/svg+xml" href="move.svg" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -32,6 +33,12 @@
         <button @click="load()" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
           <svg class="w-3.5 h-3.5" :class="loading ? 'animate-spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           Refresh
+        </button>
+        <button @click="exportExcel()" x-show="filtered.length > 0"
+          class="text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+          style="background:#EBF3FF;color:#3689FB;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          Export Excel
         </button>
         <a href="index.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg text-white" style="background:#152656;">
           + New Submission
@@ -132,10 +139,18 @@
                   <p class="text-xs text-slate-400" x-text="sub.data?.commercial?.email || ''"></p>
                 </td>
                 <td class="px-5 py-4 text-right">
-                  <button @click.stop="select(sub)" class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                    :style="selected?.id === sub.id ? 'background:#EBF3FF;color:#3689FB' : 'background:#F1F5F9;color:#475569'">
-                    View
-                  </button>
+                  <div class="flex items-center justify-end gap-2">
+                    <a x-show="sub.excelUrl" :href="sub.excelUrl" target="_blank" @click.stop
+                      class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      style="background:#F0FDF4;color:#16A34A;">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                      Excel
+                    </a>
+                    <button @click.stop="select(sub)" class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                      :style="selected?.id === sub.id ? 'background:#EBF3FF;color:#3689FB' : 'background:#F1F5F9;color:#475569'">
+                      View
+                    </button>
+                  </div>
                 </td>
               </tr>
             </template>
@@ -289,7 +304,7 @@
         async load() {
           this.loading = true;
           try {
-            const res = await fetch('/admin/submissions');
+            const res = await fetch('/api/admin-submissions');
             if (!res.ok) throw new Error('Failed to load');
             this.submissions = await res.json();
           } catch (err) {
@@ -302,6 +317,28 @@
 
         select(sub) {
           this.selected = this.selected?.id === sub.id ? null : sub;
+        },
+
+        exportExcel() {
+          const wb = XLSX.utils.book_new();
+          const rows = this.filtered.map(s => ({
+            'Date': this.formatDate(s.submittedAt),
+            'Platform': s.platform === 'holidayheroes' ? 'HolidayHeroes' : 'Ratecore',
+            'Company': s.partnerName || '',
+            'Website': s.data?.company?.website || '',
+            'Country': s.data?.company?.country || s.data?.company?.address || '',
+            'Commercial Name': s.data?.commercial?.name || '',
+            'Commercial Email': s.data?.commercial?.email || '',
+            'Commercial Phone': s.data?.commercial?.phone || '',
+            'Technical Name': s.data?.technical?.name || '',
+            'Technical Email': s.data?.technical?.email || '',
+            'Market': s.data?.market || '',
+            'Currencies': s.data?.currencies || '',
+            'Payment Gateway': s.data?.paymentGateway || '',
+          }));
+          const ws = XLSX.utils.json_to_sheet(rows);
+          XLSX.utils.book_append_sheet(wb, ws, 'Submissions');
+          XLSX.writeFile(wb, `Move_Submissions_${new Date().toISOString().slice(0,10)}.xlsx`);
         },
 
         formatDate(iso) {

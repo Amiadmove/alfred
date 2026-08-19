@@ -1,5 +1,6 @@
 const xlsx = require('xlsx');
 const nodemailer = require('nodemailer');
+const { put } = require('@vercel/blob');
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'amiad@alfredtravel.io';
 
@@ -107,6 +108,33 @@ function buildExcel(d) {
     ['Q23 — Other Technical Info',   d.otherInfo       || ''],
   ]), '4 — Operations & Tech');
 
+  const hotelSupplierRows = (d.providers?.hotelSuppliers || []).filter(s => s.name)
+    .map(s => [s.name, s.apiEndpoint, s.username, '(redacted)', s.notes]);
+
+  xlsx.utils.book_append_sheet(wb, xlsx.utils.aoa_to_sheet([
+    ['PROVIDER CREDENTIALS'],
+    [],
+    ['AMADEUS'],
+    ['OID Client ID',     d.providers?.amadeus?.oidClientId    || ''],
+    ['OID Client Secret', '(redacted)'],
+    ['Environment',       d.providers?.amadeus?.oidEnvironment || ''],
+    ['Notes',             d.providers?.amadeus?.notes          || ''],
+    [],
+    ['TRAVELFUSION'],
+    ['IP Whitelist Requested', d.providers?.travelfusion?.ipWhitelistRequested || ''],
+    ['TF Username',            d.providers?.travelfusion?.tfUsername || ''],
+    ['TF Password',            '(redacted)'],
+    ['Notes',                  d.providers?.travelfusion?.notes || ''],
+    [],
+    ['HOTEL SUPPLIERS'],
+    ['Gimmonix', d.providers?.gimmonix || ''],
+    [],
+    ...(hotelSupplierRows.length ? [
+      ['Supplier Name', 'API Endpoint', 'Username', 'Password', 'Notes'],
+      ...hotelSupplierRows,
+    ] : [['No additional hotel suppliers listed']]),
+  ]), '5 — Provider Credentials');
+
   return xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
 }
 
@@ -116,13 +144,34 @@ module.exports = async function handler(req, res) {
   try {
     const d = req.body;
     const partnerName = d.company?.name || 'Unknown';
+    const id = Date.now().toString();
     const buffer = buildExcel(d);
     const filename = `HH_${partnerName.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`;
 
+    const submissionData = {
+      id,
+      platform: 'holidayheroes',
+      partnerName,
+      submittedAt: new Date().toISOString(),
+      data: d,
+    };
+
+    // Save to Vercel Blob
+    const xlsxBlob = await put(`submissions/${id}.xlsx`, Buffer.from(buffer), {
+      access: 'public',
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    submissionData.excelUrl = xlsxBlob.url;
+    await put(`submissions/${id}.json`, JSON.stringify(submissionData), {
+      access: 'public',
+      contentType: 'application/json',
+    });
+
+    // Send email
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 587,
+        port: Number(process.env.SMTP_PORT) || 587,
         secure: false,
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
       });
