@@ -420,7 +420,8 @@
           <!-- Market & Routes -->
           <div class="bg-white rounded-2xl border border-slate-200 p-5">
             <p class="section-title" style="padding-top:0;">Market & Routes</p>
-            <div class="grid grid-cols-2 gap-x-10">
+            <!-- View mode -->
+            <div x-show="!editMode" class="grid grid-cols-2 gap-x-10">
               <div>
                 <div class="detail-row"><span class="detail-label">Market</span><span class="detail-value" x-text="selected?.data?.market || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">Currencies</span><span class="detail-value" x-text="selected?.data?.currencies || '—'"></span></div>
@@ -439,10 +440,29 @@
                 </div>
               </div>
             </div>
+            <!-- Edit mode -->
+            <template x-if="editMode">
+              <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Market</label><input x-model="editData.data.market" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Currencies</label><input x-model="editData.data.currencies" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Departure Airports</label><input x-model="editData.data.departureAirports" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Destinations</label><input x-model="editData.data.destinations" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Total Routes</label><input x-model="editData.data.totalRoutes" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Revenue Top %</label><input x-model="editData.data.revenueRoutePct" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 font-medium block mb-0.5">Destination Tags <span class="font-normal">(comma-separated)</span></label>
+                  <textarea class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400 resize-none" rows="3"
+                    :value="(editData.data.destinationTags || []).join(', ')"
+                    @input="editData.data.destinationTags = $event.target.value.split(',').map(t => t.trim()).filter(Boolean)"></textarea>
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- Top Routes Table -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="(selected?.data?.routes || []).some(r => r.name)">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="editMode || (selected?.data?.routes || []).some(r => r.name)">
             <p class="section-title" style="padding-top:0;">Top Routes</p>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
@@ -455,13 +475,27 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template x-for="(r, i) in (selected?.data?.routes || []).filter(r => r.name)" :key="i">
-                    <tr class="border-b border-slate-100">
-                      <td class="px-3 py-2 text-xs text-slate-400" x-text="i + 1"></td>
-                      <td class="px-3 py-2 font-medium text-slate-800" x-text="r.name"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="r.domestic ? '✓' : ''"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="r.international ? '✓' : ''"></td>
-                    </tr>
+                  <!-- View mode rows -->
+                  <template x-if="!editMode">
+                    <template x-for="(r, i) in (selected?.data?.routes || []).filter(r => r.name)" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-3 py-2 text-xs text-slate-400" x-text="i + 1"></td>
+                        <td class="px-3 py-2 font-medium text-slate-800" x-text="r.name"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="r.domestic ? '✓' : ''"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="r.international ? '✓' : ''"></td>
+                      </tr>
+                    </template>
+                  </template>
+                  <!-- Edit mode rows -->
+                  <template x-if="editMode">
+                    <template x-for="(r, i) in (editData.data.routes || [])" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-3 py-2 text-xs text-slate-400" x-text="i + 1"></td>
+                        <td class="px-3 py-2"><input x-model="r.name" class="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-400" placeholder="e.g. SOF-FRA" /></td>
+                        <td class="px-3 py-2 text-center"><input type="checkbox" x-model="r.domestic" class="w-4 h-4 rounded" /></td>
+                        <td class="px-3 py-2 text-center"><input type="checkbox" x-model="r.international" class="w-4 h-4 rounded" /></td>
+                      </tr>
+                    </template>
                   </template>
                 </tbody>
               </table>
@@ -469,7 +503,7 @@
           </div>
 
           <!-- Air Content Sources -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="(selected?.data?.airContent || []).some(a => a.airline)">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="editMode || (selected?.data?.airContent || []).some(a => a.airline)">
             <p class="section-title" style="padding-top:0;">Air Content Sources</p>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
@@ -485,16 +519,31 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template x-for="(ac, i) in (selected?.data?.airContent || []).filter(a => a.airline)" :key="i">
-                    <tr class="border-b border-slate-100">
-                      <td class="px-3 py-2 font-medium text-slate-800" x-text="ac.airline"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.gds || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.tf || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.aggregator || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.direct || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.ndc || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.negotiated || '—'"></td>
-                    </tr>
+                  <template x-if="!editMode">
+                    <template x-for="(ac, i) in (selected?.data?.airContent || []).filter(a => a.airline)" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-3 py-2 font-medium text-slate-800" x-text="ac.airline"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.gds || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.tf || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.aggregator || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.direct || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.ndc || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="ac.negotiated || '—'"></td>
+                      </tr>
+                    </template>
+                  </template>
+                  <template x-if="editMode">
+                    <template x-for="(ac, i) in (editData.data.airContent || [])" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-1 py-1"><input x-model="ac.airline" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" placeholder="Airline" /></td>
+                        <td class="px-1 py-1"><input x-model="ac.gds" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="ac.tf" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="ac.aggregator" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="ac.direct" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="ac.ndc" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="ac.negotiated" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                      </tr>
+                    </template>
                   </template>
                 </tbody>
               </table>
@@ -502,7 +551,7 @@
           </div>
 
           <!-- Hotel Content Sources -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="(selected?.data?.hotelContent || []).some(h => h.name)">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="editMode || (selected?.data?.hotelContent || []).some(h => h.name)">
             <p class="section-title" style="padding-top:0;">Hotel Content Sources</p>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
@@ -517,15 +566,29 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template x-for="(hc, i) in (selected?.data?.hotelContent || []).filter(h => h.name)" :key="i">
-                    <tr class="border-b border-slate-100">
-                      <td class="px-3 py-2 font-medium text-slate-800" x-text="hc.name"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.gds || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.bedbank || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.directConnect || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.aggregator || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.other || '—'"></td>
-                    </tr>
+                  <template x-if="!editMode">
+                    <template x-for="(hc, i) in (selected?.data?.hotelContent || []).filter(h => h.name)" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-3 py-2 font-medium text-slate-800" x-text="hc.name"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.gds || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.bedbank || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.directConnect || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.aggregator || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="hc.other || '—'"></td>
+                      </tr>
+                    </template>
+                  </template>
+                  <template x-if="editMode">
+                    <template x-for="(hc, i) in (editData.data.hotelContent || [])" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-1 py-1"><input x-model="hc.name" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" placeholder="Supplier" /></td>
+                        <td class="px-1 py-1"><input x-model="hc.gds" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="hc.bedbank" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="hc.directConnect" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="hc.aggregator" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="hc.other" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                      </tr>
+                    </template>
                   </template>
                 </tbody>
               </table>
@@ -533,7 +596,7 @@
           </div>
 
           <!-- Non-Air Content -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="(selected?.data?.nonAirContent || []).some(n => n.type)">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="editMode || (selected?.data?.nonAirContent || []).some(n => n.type)">
             <p class="section-title" style="padding-top:0;">Non-Air Content Sources</p>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
@@ -545,12 +608,23 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template x-for="(nc, i) in (selected?.data?.nonAirContent || []).filter(n => n.type)" :key="i">
-                    <tr class="border-b border-slate-100">
-                      <td class="px-3 py-2 font-medium text-slate-800" x-text="nc.type"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="nc.source || '—'"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="nc.negotiated || '—'"></td>
-                    </tr>
+                  <template x-if="!editMode">
+                    <template x-for="(nc, i) in (selected?.data?.nonAirContent || []).filter(n => n.type)" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-3 py-2 font-medium text-slate-800" x-text="nc.type"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="nc.source || '—'"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="nc.negotiated || '—'"></td>
+                      </tr>
+                    </template>
+                  </template>
+                  <template x-if="editMode">
+                    <template x-for="(nc, i) in (editData.data.nonAirContent || [])" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-1 py-1"><input x-model="nc.type" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" placeholder="Type" /></td>
+                        <td class="px-1 py-1"><input x-model="nc.source" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                        <td class="px-1 py-1"><input x-model="nc.negotiated" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></td>
+                      </tr>
+                    </template>
                   </template>
                 </tbody>
               </table>
@@ -560,7 +634,8 @@
           <!-- Operations & Technology -->
           <div class="bg-white rounded-2xl border border-slate-200 p-5">
             <p class="section-title" style="padding-top:0;">Operations & Technology</p>
-            <div class="grid grid-cols-2 gap-x-10">
+            <!-- View mode -->
+            <div x-show="!editMode" class="grid grid-cols-2 gap-x-10">
               <div>
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Payment & Operations</p>
                 <div class="detail-row"><span class="detail-label">Payment Gateway</span><span class="detail-value" x-text="selected?.data?.paymentGateway || '—'"></span></div>
@@ -590,10 +665,44 @@
                 <div class="detail-row"><span class="detail-label">B2B2C Replacing</span><span class="detail-value" x-text="selected?.data?.replacingApps?.b2b2c || '—'"></span></div>
               </div>
             </div>
+            <!-- Edit mode -->
+            <template x-if="editMode">
+              <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                <div class="space-y-2">
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Payment & Operations</p>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Payment Gateway</label><input x-model="editData.data.paymentGateway" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Paying Party</label><input x-model="editData.data.payingParty" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Payment Terms</label><input x-model="editData.data.paymentTerms" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Merchant of Record</label><input x-model="editData.data.merchantOfRecord" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-xs text-slate-400 font-medium block mb-0.5">B2B Agents Count</label><input x-model="editData.data.b2bAgents.count" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 font-medium block mb-0.5">B2B Agents %</label><input x-model="editData.data.b2bAgents.pct" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  </div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Back Office</label><input x-model="editData.data.backOffice" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">B2B2C Partners</label><input x-model="editData.data.b2b2cPartners" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Resell Tour Ops</label><input x-model="editData.data.resellTourOps" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">UI Requirements</label><textarea x-model="editData.data.uiRequirements" rows="3" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400 resize-none"></textarea></div>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Apps — Current / Future / Replacing</p>
+                  <div class="grid grid-cols-3 gap-1">
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2B Current</label><input x-model="editData.data.currentApps.b2b" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2B Future</label><input x-model="editData.data.futureApps.b2b" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2B Replacing</label><input x-model="editData.data.replacingApps.b2b" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2C Current</label><input x-model="editData.data.currentApps.b2c" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2C Future</label><input x-model="editData.data.futureApps.b2c" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2C Replacing</label><input x-model="editData.data.replacingApps.b2c" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2B2C Current</label><input x-model="editData.data.currentApps.b2b2c" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2B2C Future</label><input x-model="editData.data.futureApps.b2b2c" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                    <div><label class="text-xs text-slate-400 block mb-0.5">B2B2C Replacing</label><input x-model="editData.data.replacingApps.b2b2c" class="w-full border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400" /></div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- Tour Operators -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="(selected?.data?.tourOperators || []).some(t => t.name)">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="editMode || (selected?.data?.tourOperators || []).some(t => t.name)">
             <p class="section-title" style="padding-top:0;">Tour Operators</p>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
@@ -604,11 +713,21 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template x-for="(to, i) in (selected?.data?.tourOperators || []).filter(t => t.name)" :key="i">
-                    <tr class="border-b border-slate-100">
-                      <td class="px-3 py-2 font-medium text-slate-800" x-text="to.name"></td>
-                      <td class="px-3 py-2 text-xs text-slate-600" x-text="to.connection || '—'"></td>
-                    </tr>
+                  <template x-if="!editMode">
+                    <template x-for="(to, i) in (selected?.data?.tourOperators || []).filter(t => t.name)" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-3 py-2 font-medium text-slate-800" x-text="to.name"></td>
+                        <td class="px-3 py-2 text-xs text-slate-600" x-text="to.connection || '—'"></td>
+                      </tr>
+                    </template>
+                  </template>
+                  <template x-if="editMode">
+                    <template x-for="(to, i) in (editData.data.tourOperators || [])" :key="i">
+                      <tr class="border-b border-slate-100">
+                        <td class="px-1 py-1"><input x-model="to.name" class="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-400" placeholder="Tour Operator" /></td>
+                        <td class="px-1 py-1"><input x-model="to.connection" class="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-400" placeholder="API / XML / etc." /></td>
+                      </tr>
+                    </template>
                   </template>
                 </tbody>
               </table>
@@ -618,20 +737,19 @@
           <!-- Provider Credentials -->
           <div class="bg-white rounded-2xl border border-slate-200 p-5">
             <p class="section-title" style="padding-top:0;">Provider Credentials</p>
-            <div class="grid grid-cols-2 gap-x-10">
+            <!-- View mode -->
+            <div x-show="!editMode" class="grid grid-cols-2 gap-x-10">
               <div>
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Amadeus</p>
                 <div class="detail-row"><span class="detail-label">OID Client ID</span><span class="detail-value font-mono text-xs" x-text="selected?.data?.providers?.amadeus?.oidClientId || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">OID Client Secret</span><span class="detail-value font-mono text-xs" x-text="selected?.data?.providers?.amadeus?.oidClientSecret || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">Environment</span><span class="detail-value" x-text="selected?.data?.providers?.amadeus?.oidEnvironment || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">Notes</span><span class="detail-value" x-text="selected?.data?.providers?.amadeus?.notes || '—'"></span></div>
-
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-4 mb-2">Travelfusion</p>
                 <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value font-mono text-xs" x-text="selected?.data?.providers?.travelfusion?.tfUsername || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">Password</span><span class="detail-value font-mono text-xs" x-text="selected?.data?.providers?.travelfusion?.tfPassword || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">IP Whitelist</span><span class="detail-value" x-text="selected?.data?.providers?.travelfusion?.ipWhitelistRequested || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">Notes</span><span class="detail-value" x-text="selected?.data?.providers?.travelfusion?.notes || '—'"></span></div>
-
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-4 mb-2">Gimmonix</p>
                 <div class="detail-row"><span class="detail-label">Credentials</span><span class="detail-value font-mono text-xs" x-text="selected?.data?.providers?.gimmonix || '—'"></span></div>
               </div>
@@ -649,12 +767,46 @@
                 <p x-show="!(selected?.data?.providers?.hotelSuppliers || []).some(s => s.name)" class="text-xs text-slate-400">No hotel suppliers listed</p>
               </div>
             </div>
+            <!-- Edit mode -->
+            <template x-if="editMode">
+              <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                <div class="space-y-2">
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Amadeus</p>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">OID Client ID</label><input x-model="editData.data.providers.amadeus.oidClientId" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">OID Client Secret</label><input x-model="editData.data.providers.amadeus.oidClientSecret" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Environment</label><input x-model="editData.data.providers.amadeus.oidEnvironment" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Notes</label><input x-model="editData.data.providers.amadeus.notes" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-3 mb-1">Travelfusion</p>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Username</label><input x-model="editData.data.providers.travelfusion.tfUsername" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Password</label><input x-model="editData.data.providers.travelfusion.tfPassword" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">IP Whitelist</label><input x-model="editData.data.providers.travelfusion.ipWhitelistRequested" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Notes</label><input x-model="editData.data.providers.travelfusion.notes" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-3 mb-1">Gimmonix</p>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Credentials</label><input x-model="editData.data.providers.gimmonix" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Hotel Suppliers</p>
+                  <template x-for="(hs, i) in (editData.data.providers.hotelSuppliers || [])" :key="i">
+                    <div class="mb-3 p-3 rounded-xl space-y-1.5" style="background:#F8FAFC; border:1px solid #E2E8F0;">
+                      <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Supplier Name</label><input x-model="hs.name" class="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-400" /></div>
+                      <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Username</label><input x-model="hs.username" class="w-full border border-slate-200 rounded px-2 py-1 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                      <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Password</label><input x-model="hs.password" class="w-full border border-slate-200 rounded px-2 py-1 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                      <div><label class="text-xs text-slate-400 font-medium block mb-0.5">API Endpoint</label><input x-model="hs.apiEndpoint" class="w-full border border-slate-200 rounded px-2 py-1 text-sm font-mono focus:outline-none focus:border-blue-400" /></div>
+                      <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Notes</label><input x-model="hs.notes" class="w-full border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-400" /></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- Additional Notes -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="selected?.data?.otherInfo">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5" x-show="editMode || selected?.data?.otherInfo">
             <p class="section-title" style="padding-top:0;">Additional Notes</p>
-            <p class="text-sm text-slate-700 leading-relaxed" x-text="selected?.data?.otherInfo"></p>
+            <p x-show="!editMode" class="text-sm text-slate-700 leading-relaxed" x-text="selected?.data?.otherInfo"></p>
+            <template x-if="editMode">
+              <textarea x-model="editData.data.otherInfo" rows="4" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 resize-none"></textarea>
+            </template>
           </div>
 
         </div>
@@ -706,7 +858,8 @@
                 </tbody>
               </table>
             </div>
-            <div class="grid grid-cols-2 gap-x-10 mt-4">
+            <!-- Forecast fields - view -->
+            <div x-show="!editMode" class="grid grid-cols-2 gap-x-10 mt-4">
               <div>
                 <div class="detail-row"><span class="detail-label">Peak Months</span><span class="detail-value" x-text="selected?.data?.forecast?.peakMonths || '—'"></span></div>
                 <div class="detail-row"><span class="detail-label">Avg Lead Time</span><span class="detail-value" x-text="selected?.data?.forecast?.avgLeadTime || '—'"></span></div>
@@ -716,26 +869,58 @@
                 <div class="detail-row"><span class="detail-label">Seasonal Patterns</span><span class="detail-value" x-text="selected?.data?.forecast?.seasonalPatterns || '—'"></span></div>
               </div>
             </div>
+            <!-- Forecast fields - edit -->
+            <template x-if="editMode">
+              <div class="grid grid-cols-4 gap-3 mt-4">
+                <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Peak Months</label><input x-model="editData.data.forecast.peakMonths" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Avg Lead Time</label><input x-model="editData.data.forecast.avgLeadTime" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Avg Trip Duration</label><input x-model="editData.data.forecast.avgTripDuration" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Seasonal Patterns</label><input x-model="editData.data.forecast.seasonalPatterns" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+              </div>
+            </template>
           </div>
 
           <!-- Technical + Integrations -->
           <div class="grid grid-cols-2 gap-5">
             <div class="bg-white rounded-2xl border border-slate-200 p-5">
               <p class="section-title" style="padding-top:0;">Technical Stack</p>
-              <div class="detail-row"><span class="detail-label">Frontend</span><span class="detail-value" x-text="selected?.data?.tech?.frontendFramework || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Backend</span><span class="detail-value" x-text="selected?.data?.tech?.backendLanguage || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">API Preference</span><span class="detail-value" x-text="selected?.data?.tech?.apiPreference || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Auth Method</span><span class="detail-value" x-text="selected?.data?.tech?.authMethod || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Hosting</span><span class="detail-value" x-text="selected?.data?.tech?.hostingProvider || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">CI/CD</span><span class="detail-value" x-text="selected?.data?.tech?.cicd || '—'"></span></div>
+              <div x-show="!editMode">
+                <div class="detail-row"><span class="detail-label">Frontend</span><span class="detail-value" x-text="selected?.data?.tech?.frontendFramework || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Backend</span><span class="detail-value" x-text="selected?.data?.tech?.backendLanguage || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">API Preference</span><span class="detail-value" x-text="selected?.data?.tech?.apiPreference || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Auth Method</span><span class="detail-value" x-text="selected?.data?.tech?.authMethod || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Hosting</span><span class="detail-value" x-text="selected?.data?.tech?.hostingProvider || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">CI/CD</span><span class="detail-value" x-text="selected?.data?.tech?.cicd || '—'"></span></div>
+              </div>
+              <template x-if="editMode">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Frontend</label><input x-model="editData.data.tech.frontendFramework" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Backend</label><input x-model="editData.data.tech.backendLanguage" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">API Preference</label><input x-model="editData.data.tech.apiPreference" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Auth Method</label><input x-model="editData.data.tech.authMethod" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Hosting</label><input x-model="editData.data.tech.hostingProvider" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">CI/CD</label><input x-model="editData.data.tech.cicd" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                </div>
+              </template>
             </div>
             <div class="bg-white rounded-2xl border border-slate-200 p-5">
               <p class="section-title" style="padding-top:0;">Integrations</p>
-              <div class="detail-row"><span class="detail-label">GDS</span><span class="detail-value" x-text="selected?.data?.integrations?.gds || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Booking Engine</span><span class="detail-value" x-text="selected?.data?.integrations?.bookingEngine || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Payment Provider</span><span class="detail-value" x-text="selected?.data?.integrations?.paymentProvider || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Analytics</span><span class="detail-value" x-text="selected?.data?.integrations?.analytics || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">CRM</span><span class="detail-value" x-text="selected?.data?.integrations?.crm || '—'"></span></div>
+              <div x-show="!editMode">
+                <div class="detail-row"><span class="detail-label">GDS</span><span class="detail-value" x-text="selected?.data?.integrations?.gds || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Booking Engine</span><span class="detail-value" x-text="selected?.data?.integrations?.bookingEngine || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Payment Provider</span><span class="detail-value" x-text="selected?.data?.integrations?.paymentProvider || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Analytics</span><span class="detail-value" x-text="selected?.data?.integrations?.analytics || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">CRM</span><span class="detail-value" x-text="selected?.data?.integrations?.crm || '—'"></span></div>
+              </div>
+              <template x-if="editMode">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">GDS</label><input x-model="editData.data.integrations.gds" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Booking Engine</label><input x-model="editData.data.integrations.bookingEngine" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Payment Provider</label><input x-model="editData.data.integrations.paymentProvider" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Analytics</label><input x-model="editData.data.integrations.analytics" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">CRM</label><input x-model="editData.data.integrations.crm" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -805,34 +990,47 @@
           <div class="grid grid-cols-2 gap-5">
             <div class="bg-white rounded-2xl border border-slate-200 p-5">
               <p class="section-title" style="padding-top:0;">Customer Segments</p>
-              <div class="detail-row"><span class="detail-label">Primary Segments</span><span class="detail-value" x-text="selected?.data?.segments?.primarySegments || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Group Size</span><span class="detail-value" x-text="selected?.data?.segments?.groupSize || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Price Sensitivity</span><span class="detail-value" x-text="selected?.data?.segments?.priceSensitivity || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Booking Preference</span><span class="detail-value" x-text="selected?.data?.segments?.bookingPreference || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Avg Days to Dep.</span><span class="detail-value" x-text="selected?.data?.segments?.avgDaysToDeparture || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Mobile / Desktop</span><span class="detail-value" x-text="selected?.data?.segments?.mobileDesktopSplit || '—'"></span></div>
+              <div x-show="!editMode">
+                <div class="detail-row"><span class="detail-label">Primary Segments</span><span class="detail-value" x-text="selected?.data?.segments?.primarySegments || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Group Size</span><span class="detail-value" x-text="selected?.data?.segments?.groupSize || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Price Sensitivity</span><span class="detail-value" x-text="selected?.data?.segments?.priceSensitivity || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Booking Preference</span><span class="detail-value" x-text="selected?.data?.segments?.bookingPreference || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Avg Days to Dep.</span><span class="detail-value" x-text="selected?.data?.segments?.avgDaysToDeparture || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Mobile / Desktop</span><span class="detail-value" x-text="selected?.data?.segments?.mobileDesktopSplit || '—'"></span></div>
+              </div>
+              <template x-if="editMode">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Primary Segments</label><input x-model="editData.data.segments.primarySegments" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Group Size</label><input x-model="editData.data.segments.groupSize" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Price Sensitivity</label><input x-model="editData.data.segments.priceSensitivity" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Booking Preference</label><input x-model="editData.data.segments.bookingPreference" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Avg Days to Dep.</label><input x-model="editData.data.segments.avgDaysToDeparture" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Mobile / Desktop</label><input x-model="editData.data.segments.mobileDesktopSplit" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                </div>
+              </template>
             </div>
             <div class="bg-white rounded-2xl border border-slate-200 p-5">
               <p class="section-title" style="padding-top:0;">Branding</p>
-              <div class="detail-row">
-                <span class="detail-label">Primary Color</span>
-                <span class="detail-value flex items-center gap-2">
-                  <span class="w-4 h-4 rounded border border-slate-200 inline-block flex-shrink-0" :style="'background:'+(selected?.data?.branding?.primaryColor||'#ccc')"></span>
-                  <span x-text="selected?.data?.branding?.primaryColor || '—'"></span>
-                </span>
+              <div x-show="!editMode">
+                <div class="detail-row"><span class="detail-label">Primary Color</span><span class="detail-value flex items-center gap-2"><span class="w-4 h-4 rounded border border-slate-200 inline-block flex-shrink-0" :style="'background:'+(selected?.data?.branding?.primaryColor||'#ccc')"></span><span x-text="selected?.data?.branding?.primaryColor || '—'"></span></span></div>
+                <div class="detail-row"><span class="detail-label">Secondary Color</span><span class="detail-value flex items-center gap-2"><span class="w-4 h-4 rounded border border-slate-200 inline-block flex-shrink-0" :style="'background:'+(selected?.data?.branding?.secondaryColor||'#ccc')"></span><span x-text="selected?.data?.branding?.secondaryColor || '—'"></span></span></div>
+                <div class="detail-row"><span class="detail-label">Primary Font</span><span class="detail-value" x-text="selected?.data?.branding?.primaryFont || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Logo Available</span><span class="detail-value" x-text="selected?.data?.branding?.logoAvailable || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Custom Domain</span><span class="detail-value" x-text="selected?.data?.branding?.customDomain || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Languages</span><span class="detail-value" x-text="selected?.data?.branding?.languages || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Currency Display</span><span class="detail-value" x-text="selected?.data?.branding?.currencyDisplay || '—'"></span></div>
               </div>
-              <div class="detail-row">
-                <span class="detail-label">Secondary Color</span>
-                <span class="detail-value flex items-center gap-2">
-                  <span class="w-4 h-4 rounded border border-slate-200 inline-block flex-shrink-0" :style="'background:'+(selected?.data?.branding?.secondaryColor||'#ccc')"></span>
-                  <span x-text="selected?.data?.branding?.secondaryColor || '—'"></span>
-                </span>
-              </div>
-              <div class="detail-row"><span class="detail-label">Primary Font</span><span class="detail-value" x-text="selected?.data?.branding?.primaryFont || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Logo Available</span><span class="detail-value" x-text="selected?.data?.branding?.logoAvailable || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Custom Domain</span><span class="detail-value" x-text="selected?.data?.branding?.customDomain || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Languages</span><span class="detail-value" x-text="selected?.data?.branding?.languages || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Currency Display</span><span class="detail-value" x-text="selected?.data?.branding?.currencyDisplay || '—'"></span></div>
+              <template x-if="editMode">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Primary Color</label><input x-model="editData.data.branding.primaryColor" type="color" class="h-8 w-16 border border-slate-200 rounded cursor-pointer" /><input x-model="editData.data.branding.primaryColor" class="ml-2 border border-slate-200 rounded-lg px-2.5 py-1 text-sm focus:outline-none focus:border-blue-400 w-28" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Secondary Color</label><input x-model="editData.data.branding.secondaryColor" type="color" class="h-8 w-16 border border-slate-200 rounded cursor-pointer" /><input x-model="editData.data.branding.secondaryColor" class="ml-2 border border-slate-200 rounded-lg px-2.5 py-1 text-sm focus:outline-none focus:border-blue-400 w-28" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Primary Font</label><input x-model="editData.data.branding.primaryFont" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Logo Available</label><input x-model="editData.data.branding.logoAvailable" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Custom Domain</label><input x-model="editData.data.branding.customDomain" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Languages</label><input x-model="editData.data.branding.languages" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Currency Display</label><input x-model="editData.data.branding.currencyDisplay" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -840,23 +1038,46 @@
           <div class="grid grid-cols-2 gap-5">
             <div class="bg-white rounded-2xl border border-slate-200 p-5">
               <p class="section-title" style="padding-top:0;">Compliance</p>
-              <div class="detail-row"><span class="detail-label">GDPR</span><span class="detail-value" x-text="selected?.data?.compliance?.gdpr || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Data Sharing</span><span class="detail-value" x-text="selected?.data?.compliance?.dataSharing || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">PII Handling</span><span class="detail-value" x-text="selected?.data?.compliance?.piiHandling || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Test Environment</span><span class="detail-value" x-text="selected?.data?.compliance?.testEnv || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Sandbox Period</span><span class="detail-value" x-text="selected?.data?.compliance?.sandboxPeriod || '—'"></span></div>
-              <div class="mt-3" x-show="selected?.data?.compliance?.additionalNotes">
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Additional Notes</p>
-                <p class="text-sm text-slate-700 leading-relaxed" x-text="selected?.data?.compliance?.additionalNotes"></p>
+              <div x-show="!editMode">
+                <div class="detail-row"><span class="detail-label">GDPR</span><span class="detail-value" x-text="selected?.data?.compliance?.gdpr || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Data Sharing</span><span class="detail-value" x-text="selected?.data?.compliance?.dataSharing || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">PII Handling</span><span class="detail-value" x-text="selected?.data?.compliance?.piiHandling || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Test Environment</span><span class="detail-value" x-text="selected?.data?.compliance?.testEnv || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Sandbox Period</span><span class="detail-value" x-text="selected?.data?.compliance?.sandboxPeriod || '—'"></span></div>
+                <div class="mt-3" x-show="selected?.data?.compliance?.additionalNotes">
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Additional Notes</p>
+                  <p class="text-sm text-slate-700 leading-relaxed" x-text="selected?.data?.compliance?.additionalNotes"></p>
+                </div>
               </div>
+              <template x-if="editMode">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">GDPR</label><input x-model="editData.data.compliance.gdpr" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Data Sharing</label><input x-model="editData.data.compliance.dataSharing" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">PII Handling</label><input x-model="editData.data.compliance.piiHandling" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Test Environment</label><input x-model="editData.data.compliance.testEnv" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Sandbox Period</label><input x-model="editData.data.compliance.sandboxPeriod" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Additional Notes</label><textarea x-model="editData.data.compliance.additionalNotes" rows="2" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400 resize-none"></textarea></div>
+                </div>
+              </template>
             </div>
             <div class="bg-white rounded-2xl border border-slate-200 p-5">
               <p class="section-title" style="padding-top:0;">Finance Details</p>
-              <div class="detail-row"><span class="detail-label">Finance Contact</span><span class="detail-value" x-text="selected?.data?.finance?.name || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Finance Email</span><span class="detail-value" x-text="selected?.data?.finance?.email || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">Invoice Currency</span><span class="detail-value" x-text="selected?.data?.finance?.currency || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">PO Required</span><span class="detail-value" x-text="selected?.data?.finance?.poRequired || '—'"></span></div>
-              <div class="detail-row"><span class="detail-label">PO Number</span><span class="detail-value" x-text="selected?.data?.finance?.poNumber || '—'"></span></div>
+              <div x-show="!editMode">
+                <div class="detail-row"><span class="detail-label">Finance Contact</span><span class="detail-value" x-text="selected?.data?.finance?.name || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Finance Email</span><span class="detail-value" x-text="selected?.data?.finance?.email || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">Invoice Currency</span><span class="detail-value" x-text="selected?.data?.finance?.currency || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">PO Required</span><span class="detail-value" x-text="selected?.data?.finance?.poRequired || '—'"></span></div>
+                <div class="detail-row"><span class="detail-label">PO Number</span><span class="detail-value" x-text="selected?.data?.finance?.poNumber || '—'"></span></div>
+              </div>
+              <template x-if="editMode">
+                <div class="space-y-2">
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Finance Contact</label><input x-model="editData.data.finance.name" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Finance Email</label><input x-model="editData.data.finance.email" type="email" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Invoice Currency</label><input x-model="editData.data.finance.currency" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">PO Required</label><input x-model="editData.data.finance.poRequired" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                  <div><label class="text-xs text-slate-400 font-medium block mb-0.5">PO Number</label><input x-model="editData.data.finance.poNumber" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -941,7 +1162,29 @@
         },
 
         startEdit() {
-          this.editData = JSON.parse(JSON.stringify(this.selected));
+          const d = JSON.parse(JSON.stringify(this.selected));
+          d.data = d.data || {};
+          // HolidayHeroes nested objects
+          d.data.b2bAgents = d.data.b2bAgents || {};
+          d.data.currentApps = d.data.currentApps || {};
+          d.data.futureApps = d.data.futureApps || {};
+          d.data.replacingApps = d.data.replacingApps || {};
+          d.data.providers = d.data.providers || {};
+          d.data.providers.amadeus = d.data.providers.amadeus || {};
+          d.data.providers.travelfusion = d.data.providers.travelfusion || {};
+          d.data.providers.gimmonix = d.data.providers.gimmonix || {};
+          d.data.providers.hotelSuppliers = d.data.providers.hotelSuppliers || [];
+          d.data.company = d.data.company || {};
+          d.data.contacts = d.data.contacts || [];
+          // Ratecore nested objects
+          d.data.forecast = d.data.forecast || {};
+          d.data.tech = d.data.tech || {};
+          d.data.integrations = d.data.integrations || {};
+          d.data.segments = d.data.segments || {};
+          d.data.branding = d.data.branding || {};
+          d.data.compliance = d.data.compliance || {};
+          d.data.finance = d.data.finance || {};
+          this.editData = d;
           this.editMode = true;
         },
 
