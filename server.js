@@ -4,6 +4,16 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 
+// Load .env.local for local dev (no dotenv dependency needed)
+try {
+  const envPath = path.join(__dirname, '.env.local');
+  const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+  for (const line of lines) {
+    const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  }
+} catch {}
+
 const app = express();
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(__dirname));
@@ -391,6 +401,62 @@ app.get('/admin/submissions', (req, res) => {
     }).filter(Boolean);
 
     res.json(submissions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /admin/clients + /api/admin-clients ──────────────────────────────────
+const CLIENTS_DIR = path.join(__dirname, 'clients');
+if (!fs.existsSync(CLIENTS_DIR)) fs.mkdirSync(CLIENTS_DIR);
+
+function checkAdminAuth(req) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) return true;
+  const provided = req.headers['x-admin-password'];
+  if (!provided) return false;
+  const crypto = require('crypto');
+  const a = Buffer.alloc(64);
+  const b = Buffer.alloc(64);
+  Buffer.from(provided).copy(a);
+  Buffer.from(adminPassword).copy(b);
+  return crypto.timingSafeEqual(a, b) && provided.length === adminPassword.length;
+}
+
+function serveClients(req, res) {
+  if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const files = fs.readdirSync(CLIENTS_DIR).filter(f => f.endsWith('.json'));
+    const clients = files.map(f => {
+      try {
+        return JSON.parse(fs.readFileSync(path.join(CLIENTS_DIR, f), 'utf8'));
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+    res.json(clients);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+app.get('/admin/clients', serveClients);
+app.get('/api/admin-clients', serveClients);
+
+// ─── POST /api/save-client ─────────────────────────────────────────────────────
+app.post('/api/save-client', (req, res) => {
+  if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const data = req.body;
+  if (!data || !data.id || !/^[a-z0-9_-]+$/i.test(data.id)) {
+    return res.status(400).json({ error: 'Invalid client id' });
+  }
+  const filePath = path.join(CLIENTS_DIR, `${data.id}.json`);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Client not found' });
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

@@ -4,11 +4,8 @@ const path = require('path');
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (adminPassword) {
-    const auth = req.headers['x-admin-password'];
-    if (auth !== adminPassword) return res.status(401).json({ error: 'Unauthorized' });
-  }
+  const { checkAdminAuth } = require('./_auth');
+  if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
     const clientsDir = path.join(process.cwd(), 'clients');

@@ -1,11 +1,8 @@
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (adminPassword) {
-    const auth = req.headers['x-admin-password'];
-    if (auth !== adminPassword) return res.status(401).end();
-  }
+  const { checkAdminAuth } = require('./_auth');
+  if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
 
   const { url } = req.query;
   if (!url) return res.status(400).json({ error: 'Missing url parameter' });

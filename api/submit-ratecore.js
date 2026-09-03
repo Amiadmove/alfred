@@ -1,5 +1,6 @@
 const xlsx = require('xlsx');
 const { put } = require('@vercel/blob');
+const { verifySessionToken } = require('./verify-otp');
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'amiad@alfredtravel.io';
 
@@ -129,8 +130,38 @@ function buildExcel(d) {
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
+  // Verify OTP session token
+  const sessionToken = req.headers['x-session-token'];
+  const session = verifySessionToken(sessionToken);
+  if (!session) {
+    return res.status(401).json({ ok: false, error: 'Unauthorized. Please verify your email first.' });
+  }
+
   try {
     const d = req.body;
+
+    // Honeypot check: bots fill hidden fields, humans don't
+    if (d._hp) {
+      return res.status(400).json({ ok: false, error: 'Submission rejected' });
+    }
+
+    // hCaptcha verification
+    if (process.env.HCAPTCHA_SECRET_KEY) {
+      const hcaptchaToken = d._hct || '';
+      const verifyRes = await fetch('https://hcaptcha.com/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `secret=${encodeURIComponent(process.env.HCAPTCHA_SECRET_KEY)}&response=${encodeURIComponent(hcaptchaToken)}`,
+      });
+      const verifyJson = await verifyRes.json();
+      if (!verifyJson.success) {
+        return res.status(400).json({ ok: false, error: 'CAPTCHA verification failed. Please try again.' });
+      }
+    }
+
+    // Remove internal fields before processing
+    delete d._hp;
+    delete d._hct;
     const partnerName = d.company?.name || 'Unknown';
     const id = Date.now().toString();
     const buffer = buildExcel(d);
