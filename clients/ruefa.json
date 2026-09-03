@@ -1,0 +1,27 @@
+{
+  "id": "ruefa",
+  "name": "Ruefa",
+  "color": "green",
+  "status": "pending",
+  "effectiveDate": "2026-06-01",
+  "dealModel": "Classic travel agency (Handelsvertreter §84ff HGB) distributing HH trips under Agenturinkasso",
+  "paymentDirection": "Ruefa pays HH net of its 14% commission — Ruefa is a RECEIVABLE, not a payable. Ruefa invoices and collects from the customer, holds funds in trust, and remits 86% to HH.",
+  "calculationBasis": "GROSS customer price — whole package, no component split. Our net price to Ruefa = supplier cost × 1.05. Gross-up formula: customer price = supplier cost × 1.05 ÷ 0.86. Commission arises only on paid-and-departed bookings plus paid cancellation fees.",
+  "rate": "14% of gross customer price (retained by Ruefa at source). Our share = 86% of customer price. Note: signed Anlage 2 §2 still states 10% — the 14% needs papering (§5.10/§10.8 allow revised Vertriebskonditionen on notice).",
+  "triggerDate": "Travel-end date + full customer payment — NOT booking date. Commission lapses if customer does not pay or trip is cancelled (except from paid cancellation fees).",
+  "merchantOfRecord": "HOLIDAYHEROES sprl (tour operator); holidayheroes Deutschland GmbH acts as collection-authorised agent. Ruefa is intermediary only (Agenturinkasso).",
+  "setupFee": "None",
+  "minimum": "None",
+  "deposit": "None fixed; HH may require security",
+  "credit": "—",
+  "settlementCadence": "Agenturinkasso: SEPA-Firmenmandat debited 30 days before departure, net of commission. Commission entitlement matures on 10th of month after travel-end (Anlage 1 §5.4). Confirm which timing convention Accounting applies. Pre-notification shortened to 1 day (§2.6). Failed debit: €25 flat fee + bank charges.",
+  "invoicing": "Self-billing (Gutschriftverfahren): HH issues credit notes (Gutschriften) on Ruefa's behalf; reverse charge §13b UStG — no German VAT shown",
+  "cancellations": "No commission on cancelled trips; 14% commission on cancellation fees actually paid; over-received commission must be repaid (raise debit note). Where customer money exceeds HH claim, Ruefa refunds excess directly to customer on HH instruction (§2.5).",
+  "currency": "EUR. §6.2 commits Ruefa to pay by bank transfer; §2.2/§2.3 contemplate SEPA-Firmenmandat debited 30 days pre-departure.",
+  "term": "Indefinite; Ruefa may exit anytime; HH needs 6 months' notice; auto-lapse after 2 years without sales",
+  "contacts": [
+    { "role": "Commercial", "name": "", "email": "", "phone": "" },
+    { "role": "Finance", "name": "", "email": "", "phone": "" }
+  ],
+  "notes": "Action items: (1) SEPA-Firmenmandat must be put in place for automatic collection — manual transfers leave earned revenue at risk. (2) Paper the 14% rate — signed Anlage 2 §2 still says 10%. (3) Every booking needs a payment-method flag (card / transfer / direct-to-operator) — determines whether Agenturinkasso applies (§2.3). (4) Pricing check: always gross up (÷0.86), never add on (×1.14) — error costs €19.60 per €1,000 booking."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "setur",
+  "name": "Setur",
+  "color": "blue",
+  "status": "active",
+  "effectiveDate": "2026-04-15",
+  "dealModel": "Platform license — holidayheroes PRO B2B + B2C, Türkiye exclusive",
+  "paymentDirection": "Setur pays HH (incoming revenue share + minimum commitment)",
+  "calculationBasis": "GROSS GBV — end-customer price before commissions, refunds, or taxes; VAT excluded. GBV is the YSA (sub-agency) selling price to the end customer, NOT our selling price to Setur.",
+  "rate": "1.25% on GBV up to €10M/year; 1.00% above. Year-end true-up: +0.25% to HH if GBV < €10M (i.e. effective rate is always 1.25% below threshold). Invoice at 1.00% during the year; collect 0.25% at year-end.",
+  "triggerDate": "Booking dates for bi-weekly settlement; departure dates for quarterly minimum true-up",
+  "merchantOfRecord": "Setur (Setur POS via Craftgate) — HH never sees the card transaction",
+  "setupFee": "€40,000 — 50% at signature, 50% at go-live; refundable if GBV ≥ €4M within 12 months of go-live",
+  "minimum": "€3,000/month from Month 4 post go-live; invoiced as €9,000 quarterly in advance",
+  "deposit": "€25,000 credit limit against €25,000 deposit (max exposure €50,000)",
+  "credit": "€25,000",
+  "settlementCadence": "Bi-weekly booking settlement (1–15 and 16–EOM periods); quarterly minimum reconciliation vs 1.00% actual on departure dates",
+  "invoicing": "HH invoices Setur for revenue share + minimum commitment; self-billing Gutschrift flow for YSA commissions runs separately inside Setur",
+  "cancellations": "Credit note by HH offset against outstanding balance; prior revenue share clawed back in next settlement; TL refund may differ from TL charged if rate moved",
+  "currency": "EUR commercial terms; TL on Setur POS (Craftgate). FX source and conversion date NOT fixed in Annex A — open gap. Lock EUR GBV at the charge-date rate; do not re-translate. Request TL amount + applied rate from Setur per booking.",
+  "term": "5-year fixed; no termination in first 24 months; 6-month notice from Year 3",
+  "contacts": [
+    { "role": "Commercial", "name": "", "email": "", "phone": "" },
+    { "role": "Technical", "name": "", "email": "", "phone": "" },
+    { "role": "Finance", "name": "", "email": "", "phone": "" }
+  ],
+  "notes": "Critical open points: (1) FX clause missing — propose ECB equivalent to Setur in writing. (2) GBV must be end-customer price (line 8 in Notion), not our invoice to Setur — need agent selling price from Setur per booking or revenue share is systematically understated. (3) Confirm markup chain mechanic (price differential vs commission invoice) with Setur."
+}

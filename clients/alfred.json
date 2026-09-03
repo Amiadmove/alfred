@@ -1,0 +1,27 @@
+{
+  "id": "alfred",
+  "name": "Alfred",
+  "color": "amber",
+  "status": "active",
+  "effectiveDate": "2026-04-20",
+  "dealModel": "API / white-label checkout partnership",
+  "paymentDirection": "Move pays Alfred (outgoing revenue share)",
+  "calculationBasis": "NET booking revenue — gross GBV minus supplier costs, taxes, and HH processing costs",
+  "rate": "Tiered monthly: 30% (1–100 bookings), 40% (101–500), 50% (501+). Annual GBV uplift: 60% on portion above €1M; 65% retroactive on all bookings once €5M reached.",
+  "triggerDate": "Booking date (calendar month)",
+  "merchantOfRecord": "HolidayHeroes (Alfred-branded checkout)",
+  "setupFee": "€4,500 — 50% at signature, 50% at go-live; reimbursed if GBV ≥ €1M in Year 1",
+  "minimum": "€1,350/month floor from Month 4 (3-layer waterfall: Alfred commission cut → zero → Layer 3 shortfall invoice to Alfred)",
+  "deposit": "€4,050 quarterly security deposit from Q2; waived after one clean quarter",
+  "credit": "—",
+  "settlementCadence": "Monthly statement within 5 business days of month-end; payment within 14 days; disputes within 5 business days",
+  "invoicing": "Move issues monthly statement; Layer 3 shortfalls invoiced separately to Alfred",
+  "cancellations": "HH handles as MoR; GBV net of cancellations; prior revenue share clawed back in next settlement",
+  "currency": "EUR. AUD bookings converted at ECB mid-market rate on booking confirmation date — rate and date must be stored per booking",
+  "term": "12 months auto-renew; Alfred locked in Year 1 (60-day non-renewal window)",
+  "contacts": [
+    { "role": "Commercial", "name": "", "email": "", "phone": "" },
+    { "role": "Technical", "name": "", "email": "", "phone": "" }
+  ],
+  "notes": ""
+}
