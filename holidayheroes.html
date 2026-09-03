@@ -1163,7 +1163,7 @@
           this.otpSending = true;
           this.otpError = '';
           try {
-            const res = await fetch('/api/send-otp', {
+            const res = await fetch('/api/otp?action=send', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: this.otpEmail }),
@@ -1184,7 +1184,7 @@
           this.otpVerifying = true;
           this.otpError = '';
           try {
-            const res = await fetch('/api/verify-otp', {
+            const res = await fetch('/api/otp?action=verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: this.otpEmail, otp: this.otpCode, challenge: this.otpChallenge }),

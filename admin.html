@@ -1272,7 +1272,7 @@
         async loadDocuments(id) {
           this.docsLoading = true;
           try {
-            const res = await fetch('/api/list-documents?id=' + id, {
+            const res = await fetch('/api/documents?id=' + id, {
               headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
             });
             if (res.ok) this.documents = await res.json();
@@ -1299,7 +1299,7 @@
               reader.onerror = reject;
               reader.readAsDataURL(file);
             });
-            const res = await fetch('/api/upload-document?id=' + id + '&filename=' + encodeURIComponent(file.name), {
+            const res = await fetch('/api/documents?id=' + id + '&filename=' + encodeURIComponent(file.name), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1321,7 +1321,7 @@
         async deleteDocument(doc) {
           if (!confirm('Delete "' + doc.name + '"?\n\nThis cannot be undone.')) return;
           try {
-            const res = await fetch('/api/delete-document?url=' + encodeURIComponent(doc.url), {
+            const res = await fetch('/api/documents?url=' + encodeURIComponent(doc.url), {
               method: 'DELETE',
               headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
             });
@@ -1335,7 +1335,7 @@
 
         async downloadDocument(doc) {
           try {
-            const res = await fetch('/api/download-document?url=' + encodeURIComponent(doc.url), {
+            const res = await fetch('/api/documents?url=' + encodeURIComponent(doc.url), {
               headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
             });
             if (!res.ok) return;

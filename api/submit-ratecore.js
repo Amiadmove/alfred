@@ -1,6 +1,6 @@
 const xlsx = require('xlsx');
 const { put } = require('@vercel/blob');
-const { verifySessionToken } = require('./verify-otp');
+const { verifySessionToken } = require('./_auth');
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'amiad@alfredtravel.io';
 
