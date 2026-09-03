@@ -22,22 +22,47 @@
 </head>
 <body x-data="adminDashboard()" x-init="init()" x-cloak>
 
-  <!-- Password Gate -->
+  <!-- OTP Gate -->
   <div x-show="!authed" class="min-h-screen flex items-center justify-center" style="background:#F7F9FC;">
     <div class="bg-white rounded-2xl border border-slate-200 p-10 w-full max-w-sm text-center" style="box-shadow:0 4px 24px rgba(0,0,0,0.07);">
       <img src="move.svg" alt="Move" class="h-7 w-auto mx-auto mb-6" />
       <h1 class="text-lg font-bold mb-1" style="color:#152656;">Admin Access</h1>
-      <p class="text-xs text-slate-400 mb-6">Enter the admin password to continue</p>
-      <form @submit.prevent="login()">
-        <input x-model="passwordInput" type="password" placeholder="Password"
-          class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:border-blue-400"
-          :class="loginError ? 'border-red-300' : ''" autofocus />
-        <p x-show="loginError" class="text-xs text-red-500 mb-3">Incorrect password</p>
-        <button type="submit" class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors"
-          style="background:#152656;">
-          Enter
-        </button>
-      </form>
+
+      <!-- Step 1: Email -->
+      <div x-show="otpStep === 1">
+        <p class="text-xs text-slate-400 mb-6">Enter your @wearemove.io email to receive a verification code</p>
+        <form @submit.prevent="sendAdminOtp()">
+          <input x-model="otpEmail" type="email" placeholder="you@wearemove.io"
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm mb-3 focus:outline-none focus:border-blue-400"
+            :class="otpError ? 'border-red-300' : ''" :disabled="otpSending" autofocus />
+          <p x-show="otpError" class="text-xs text-red-500 mb-3" x-text="otpError"></p>
+          <button type="submit" :disabled="otpSending"
+            class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-50"
+            style="background:#152656;">
+            <span x-show="!otpSending">Send Code</span>
+            <span x-show="otpSending">Sending...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Step 2: OTP Code -->
+      <div x-show="otpStep === 2">
+        <p class="text-xs text-slate-400 mb-6">Enter the 6-digit code sent to <strong x-text="otpEmail"></strong></p>
+        <form @submit.prevent="verifyAdminOtp()">
+          <input x-model="otpCode" type="text" inputmode="numeric" maxlength="6" placeholder="000000"
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm mb-3 text-center tracking-widest font-mono focus:outline-none focus:border-blue-400"
+            :class="otpError ? 'border-red-300' : ''" :disabled="otpVerifying" autofocus />
+          <p x-show="otpError" class="text-xs text-red-500 mb-3" x-text="otpError"></p>
+          <button type="submit" :disabled="otpVerifying"
+            class="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-50"
+            style="background:#152656;">
+            <span x-show="!otpVerifying">Verify</span>
+            <span x-show="otpVerifying">Verifying...</span>
+          </button>
+          <button type="button" @click="otpStep = 1; otpError = ''; otpCode = ''"
+            class="w-full py-2 mt-2 text-xs text-slate-400 hover:text-slate-600">← Use a different email</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -239,8 +264,16 @@
           <p class="text-sm text-slate-400" x-text="[selected?.data?.company?.website, selected?.data?.company?.country].filter(Boolean).join(' · ')"></p>
           <p class="text-xs text-slate-400 mt-1" x-text="'Submitted ' + formatDate(selected?.submittedAt)"></p>
         </div>
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#EBF3FF;">
-          <svg class="w-7 h-7" style="color:#3689FB;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <button @click="promoteToClient(selected)"
+            class="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
+            style="background:#F0FDF4;color:#16A34A;">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            צור לקוח ב-CRM
+          </button>
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:#EBF3FF;">
+            <svg class="w-7 h-7" style="color:#3689FB;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          </div>
         </div>
       </div>
     </div>
@@ -1097,8 +1130,13 @@
     function adminDashboard() {
       return {
         authed: false,
-        passwordInput: '',
-        loginError: false,
+        otpStep: 1,
+        otpEmail: '',
+        otpCode: '',
+        otpChallenge: '',
+        otpSending: false,
+        otpVerifying: false,
+        otpError: '',
         submissions: [],
         filter: 'all',
         selected: null,
@@ -1111,11 +1149,39 @@
         docsLoading: false,
         uploadingDoc: false,
 
-        login() {
-          sessionStorage.setItem('adminPwd', this.passwordInput);
-          this.authed = true;
-          this.loginError = false;
-          this.load();
+        async sendAdminOtp() {
+          this.otpError = '';
+          this.otpSending = true;
+          try {
+            const res = await fetch('/api/otp?action=send&type=admin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: this.otpEmail }),
+            });
+            const data = await res.json();
+            if (!data.ok) { this.otpError = data.error || 'Failed to send code'; return; }
+            this.otpChallenge = data.challenge;
+            this.otpStep = 2;
+          } catch { this.otpError = 'Network error. Please try again.'; }
+          finally { this.otpSending = false; }
+        },
+
+        async verifyAdminOtp() {
+          this.otpError = '';
+          this.otpVerifying = true;
+          try {
+            const res = await fetch('/api/otp?action=verify&type=admin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: this.otpEmail, otp: this.otpCode, challenge: this.otpChallenge }),
+            });
+            const data = await res.json();
+            if (!data.ok) { this.otpError = data.error || 'Incorrect code'; return; }
+            sessionStorage.setItem('adminToken', data.token);
+            this.authed = true;
+            await this.load();
+          } catch { this.otpError = 'Network error. Please try again.'; }
+          finally { this.otpVerifying = false; }
         },
 
         get filtered() {
@@ -1124,15 +1190,15 @@
         },
 
         async init() {
-          const saved = sessionStorage.getItem('adminPwd');
-          if (saved) { this.passwordInput = saved; this.authed = true; await this.load(); }
+          const saved = sessionStorage.getItem('adminToken');
+          if (saved) { this.authed = true; await this.load(); }
         },
 
         async load() {
           this.loading = true;
           try {
             const res = await fetch('/api/admin-submissions', {
-              headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
             });
             if (res.status === 401) { this.authed = false; this.loginError = true; this.loading = false; return; }
             if (!res.ok) throw new Error('Failed to load');
@@ -1200,7 +1266,7 @@
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
-                'x-admin-password': sessionStorage.getItem('adminPwd') || '',
+                'x-session-token': sessionStorage.getItem('adminToken') || '',
               },
               body: JSON.stringify(this.editData),
             });
@@ -1224,7 +1290,7 @@
           try {
             const res = await fetch('/api/delete-submission?id=' + sub.id, {
               method: 'DELETE',
-              headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
             });
             if (!res.ok) throw new Error('Delete failed');
             this.submissions = this.submissions.filter(s => s.id !== sub.id);
@@ -1259,7 +1325,7 @@
 
         async downloadExcel(sub) {
           const res = await fetch('/api/download-excel?url=' + encodeURIComponent(sub.excelUrl), {
-            headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+            headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
           });
           if (!res.ok) return;
           const blob = await res.blob();
@@ -1273,7 +1339,7 @@
           this.docsLoading = true;
           try {
             const res = await fetch('/api/documents?id=' + id, {
-              headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
             });
             if (res.ok) this.documents = await res.json();
           } catch (err) {
@@ -1303,7 +1369,7 @@
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'x-admin-password': sessionStorage.getItem('adminPwd') || '',
+                'x-session-token': sessionStorage.getItem('adminToken') || '',
               },
               body: JSON.stringify({ content, contentType: file.type }),
             });
@@ -1323,7 +1389,7 @@
           try {
             const res = await fetch('/api/documents?url=' + encodeURIComponent(doc.url), {
               method: 'DELETE',
-              headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
             });
             if (!res.ok) throw new Error('Delete failed');
             this.documents = this.documents.filter(d => d.url !== doc.url);
@@ -1336,7 +1402,7 @@
         async downloadDocument(doc) {
           try {
             const res = await fetch('/api/documents?url=' + encodeURIComponent(doc.url), {
-              headers: { 'x-admin-password': sessionStorage.getItem('adminPwd') || '' },
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
             });
             if (!res.ok) return;
             const blob = await res.blob();
@@ -1354,6 +1420,24 @@
           if (bytes < 1024) return bytes + ' B';
           if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
           return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        },
+
+        promoteToClient(sub) {
+          const d = sub.data || {};
+          const contacts = [];
+          if (d.commercial?.name) contacts.push({ role: 'Commercial', name: d.commercial.name, email: d.commercial.email || '', phone: d.commercial.phone || '' });
+          if (d.technical?.name) contacts.push({ role: 'Technical', name: d.technical.name, email: d.technical.email || '', phone: d.technical.phone || '' });
+          if (d.finance?.name) contacts.push({ role: 'Finance', name: d.finance.name, email: d.finance.email || '', phone: '' });
+          const clientDraft = {
+            id: (sub.partnerName || 'new-client').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+            name: sub.partnerName || d.company?.name || '',
+            status: 'pending',
+            effectiveDate: new Date().toISOString().slice(0, 10),
+            contacts,
+            notes: '',
+          };
+          localStorage.setItem('crmPromoteDraft', JSON.stringify(clientDraft));
+          window.location.href = 'crm.html?promote=1';
         },
 
         formatDate(iso) {

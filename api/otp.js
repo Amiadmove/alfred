@@ -29,8 +29,8 @@ function parseChallenge(challenge) {
   try { return JSON.parse(Buffer.from(payload, 'base64url').toString()); } catch { return null; }
 }
 
-function buildSessionToken(email, exp) {
-  const payload = Buffer.from(JSON.stringify({ email, exp, type: 'session' })).toString('base64url');
+function buildSessionToken(email, exp, type = 'session') {
+  const payload = Buffer.from(JSON.stringify({ email, exp, type })).toString('base64url');
   const mac = crypto.createHmac('sha256', getSecret()).update(payload).digest('hex');
   return `${payload}.${mac}`;
 }
@@ -80,6 +80,9 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'Valid email address required' });
     }
     const normalizedEmail = email.toLowerCase().trim();
+    if (req.query.type === 'admin' && !normalizedEmail.endsWith('@wearemove.io')) {
+      return res.status(403).json({ ok: false, error: 'Only @wearemove.io emails are allowed.' });
+    }
     const otp = String(crypto.randomInt(100000, 999999));
     const exp = Date.now() + OTP_TTL_MS;
     try {
@@ -110,7 +113,8 @@ module.exports = async function handler(req, res) {
     if (expected.length !== provided.length || !crypto.timingSafeEqual(expected, provided)) {
       return res.status(400).json({ ok: false, error: 'Incorrect code. Please try again.' });
     }
-    const token = buildSessionToken(normalizedEmail, Date.now() + SESSION_TTL_MS);
+    const tokenType = req.query.type === 'admin' ? 'admin-session' : 'session';
+    const token = buildSessionToken(normalizedEmail, Date.now() + SESSION_TTL_MS, tokenType);
     return res.status(200).json({ ok: true, token });
   }
 

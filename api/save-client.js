@@ -13,8 +13,8 @@ module.exports = async function handler(req, res) {
   }
 
   const clientsDir = path.join(process.cwd(), 'clients');
+  if (!fs.existsSync(clientsDir)) fs.mkdirSync(clientsDir, { recursive: true });
   const filePath = path.join(clientsDir, `${data.id}.json`);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Client not found' });
 
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');

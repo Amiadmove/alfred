@@ -1,6 +1,14 @@
 const crypto = require('crypto');
 
 function checkAdminAuth(req) {
+  // Accept admin session token (OTP-based)
+  const sessionToken = req.headers['x-session-token'];
+  if (sessionToken) {
+    const data = verifySessionToken(sessionToken);
+    if (data && data.type === 'admin-session') return true;
+  }
+
+  // Fallback: password-based auth
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword) return true;
 
@@ -32,7 +40,7 @@ function verifySessionToken(token) {
   } catch { return null; }
   try {
     const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
-    if (data.type !== 'session') return null;
+    if (data.type !== 'session' && data.type !== 'admin-session') return null;
     if (Date.now() > data.exp) return null;
     return data;
   } catch { return null; }
