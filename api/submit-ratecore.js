@@ -130,13 +130,6 @@ function buildExcel(d) {
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
-  // Verify OTP session token
-  const sessionToken = req.headers['x-session-token'];
-  const session = verifySessionToken(sessionToken);
-  if (!session) {
-    return res.status(401).json({ ok: false, error: 'Unauthorized. Please verify your email first.' });
-  }
-
   try {
     const d = req.body;
 
