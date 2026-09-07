@@ -77,6 +77,10 @@
         <span class="text-xs font-semibold text-slate-400 hidden sm:block">/ Submissions Dashboard</span>
       </div>
       <div class="flex items-center gap-3">
+        <button @click="openBuilder()" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Form Builder
+        </button>
         <a href="crm.html" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           CRM
@@ -1124,6 +1128,150 @@
     </div>
   </div>
 
+  <!-- ===== BUILDER VIEW ===== -->
+  <div x-show="view === 'builder'" class="max-w-5xl mx-auto px-6 py-8">
+
+    <!-- Page header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-xl font-bold" style="color:#152656;">Form Builder</h1>
+        <p class="text-xs text-slate-400 mt-1">Create customised onboarding forms for specific clients</p>
+      </div>
+      <button @click="view = 'list'" class="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Back to Submissions
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- ── Builder panel ── -->
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6">
+
+        <!-- Form type selector -->
+        <div class="mb-5">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Base Form</p>
+          <div class="flex gap-2">
+            <button @click="builder.formType = 'holidayheroes'; initBuilderSections()"
+              class="px-4 py-2 rounded-xl text-sm font-semibold border transition-colors"
+              :class="builder.formType === 'holidayheroes' ? 'text-white border-transparent' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'"
+              :style="builder.formType === 'holidayheroes' ? 'background:#D97706' : ''">
+              HolidayHeroes
+            </button>
+            <button @click="builder.formType = 'ratecore'; initBuilderSections()"
+              class="px-4 py-2 rounded-xl text-sm font-semibold border transition-colors"
+              :class="builder.formType === 'ratecore' ? 'text-white border-transparent' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'"
+              :style="builder.formType === 'ratecore' ? 'background:#3689FB' : ''">
+              Ratecore
+            </button>
+          </div>
+        </div>
+
+        <!-- Template name -->
+        <div class="mb-5">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Template Name</p>
+          <input x-model="builder.name" type="text" placeholder="e.g. HolidayHeroes — Basic Q1 2027"
+            class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-400" />
+        </div>
+
+        <!-- Section toggles -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Sections</p>
+            <div class="flex gap-2">
+              <button @click="selectAllSections(true)" class="text-xs text-slate-400 hover:text-slate-700 transition-colors">Select all</button>
+              <span class="text-slate-200">|</span>
+              <button @click="selectAllSections(false)" class="text-xs text-slate-400 hover:text-slate-700 transition-colors">Deselect all</button>
+            </div>
+          </div>
+
+          <!-- Group by step -->
+          <template x-for="step in builderSteps" :key="step.num">
+            <div class="mb-4">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2" x-text="'Step ' + step.num + ' — ' + step.label"></p>
+              <div class="space-y-1.5">
+                <template x-for="section in builderSectionsForStep(step.num)" :key="section.id">
+                  <label class="flex items-center justify-between px-3 py-2.5 rounded-xl border cursor-pointer transition-colors"
+                    :class="builder.sections[section.id] !== false ? 'border-blue-200' : 'border-slate-100 opacity-60'"
+                    :style="builder.sections[section.id] !== false ? 'background:#F0F7FF' : 'background:#FAFAFA'">
+                    <span class="text-sm font-medium text-slate-700" x-text="section.label"></span>
+                    <input type="checkbox"
+                      :checked="builder.sections[section.id] !== false"
+                      @change="builder.sections[section.id] = $event.target.checked"
+                      class="w-4 h-4 rounded" style="accent-color:#3689FB;" />
+                  </label>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Save button -->
+        <div class="flex items-center gap-3">
+          <button @click="saveTemplate()" :disabled="builderSaving || !builder.name"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style="background:#152656;">
+            <svg x-show="!builderSaving" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+            <svg x-show="builderSaving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            <span x-text="builderSaving ? 'Saving…' : (builder.id ? 'Update Template' : 'Save & Get Link')"></span>
+          </button>
+          <button x-show="builder.id" @click="resetBuilder()" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">+ New template</button>
+          <span x-show="builderSaved" class="text-xs text-emerald-600 font-semibold">✓ Saved!</span>
+        </div>
+      </div>
+
+      <!-- ── Template library ── -->
+      <div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Saved Templates</p>
+            <button @click="loadTemplates()" class="text-slate-300 hover:text-slate-600 transition-colors">
+              <svg class="w-3.5 h-3.5" :class="templatesLoading ? 'animate-spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+
+          <div x-show="templatesLoading" class="text-xs text-slate-400 py-4 text-center">Loading…</div>
+
+          <div x-show="!templatesLoading && templates.length === 0" class="text-xs text-slate-400 py-4 text-center">
+            No templates yet.<br/>Create your first one →
+          </div>
+
+          <div class="space-y-3">
+            <template x-for="t in templates" :key="t.id">
+              <div class="p-3 rounded-xl border border-slate-100 bg-slate-50">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate" x-text="t.name"></p>
+                    <p class="text-xs mt-0.5 font-medium"
+                      :style="t.formType === 'holidayheroes' ? 'color:#D97706' : 'color:#3689FB'"
+                      x-text="t.formType === 'holidayheroes' ? 'HolidayHeroes' : 'Ratecore'"></p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <button @click="copyTemplateLink(t)"
+                    class="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
+                    :style="copiedId === t.id ? 'background:#D1FAE5;color:#065F46' : 'background:#EBF3FF;color:#3689FB'">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    <span x-text="copiedId === t.id ? 'Copied!' : 'Copy Link'"></span>
+                  </button>
+                  <button @click="editTemplate(t)"
+                    class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:border-slate-300 transition-colors">
+                    Edit
+                  </button>
+                  <button @click="deleteTemplate(t.id)"
+                    class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-red-400 hover:text-red-600 hover:border-red-300 transition-colors">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   </div><!-- end authed -->
 
   <style>
@@ -1152,6 +1300,63 @@
         documents: [],
         docsLoading: false,
         uploadingDoc: false,
+
+        // Form Builder state
+        builder: { id: null, formType: 'holidayheroes', name: '', sections: {} },
+        templates: [],
+        templatesLoading: false,
+        builderSaving: false,
+        builderSaved: false,
+        copiedId: '',
+
+        SECTIONS: {
+          holidayheroes: [
+            { id: 'company',        label: 'Company Information',        step: 1 },
+            { id: 'commercial',     label: 'Commercial Contact',         step: 1 },
+            { id: 'technical',      label: 'Technical Contact',          step: 1 },
+            { id: 'q1',             label: 'Q1 — Operating Market',      step: 2 },
+            { id: 'q2',             label: 'Q2 — Currencies',            step: 2 },
+            { id: 'q3',             label: 'Q3 — Departure Airports',    step: 2 },
+            { id: 'q4',             label: 'Q4 — Destination Tags',      step: 2 },
+            { id: 'q5',             label: 'Q5 — Top Routes Table',      step: 2 },
+            { id: 'q6',             label: 'Q6 — Total Route Count',     step: 2 },
+            { id: 'q7',             label: 'Q7 — Revenue Route %',       step: 2 },
+            { id: 'q8',             label: 'Q8 — Air Content',           step: 3 },
+            { id: 'q9',             label: 'Q9 — Hotel Content',         step: 3 },
+            { id: 'q10',            label: 'Q10 — Non-Air Content',      step: 3 },
+            { id: 'q11',            label: 'Q11 — Tour Operators',       step: 4 },
+            { id: 'q12',            label: 'Q12 — Payment Gateway',      step: 4 },
+            { id: 'q13',            label: 'Q13 — Paying Party',         step: 4 },
+            { id: 'q14',            label: 'Q14 — Payment Terms',        step: 4 },
+            { id: 'q15',            label: 'Q15 — Back / Mid Office',    step: 4 },
+            { id: 'q16',            label: 'Q16 — Current Applications', step: 4 },
+            { id: 'q17',            label: 'Q17 — Future Applications',  step: 4 },
+            { id: 'q18',            label: 'Q18 — Replacing Apps',       step: 4 },
+            { id: 'q19',            label: 'Q19 — B2B2C Partners',       step: 4 },
+            { id: 'q20',            label: 'Q20 — Merchant of Record',   step: 4 },
+            { id: 'q21',            label: 'Q21 — B2B Agent Count',      step: 4 },
+            { id: 'q22',            label: 'Q22 — UI/UX Requirements',   step: 4 },
+            { id: 'q23',            label: 'Q23 — Other Info',           step: 4 },
+            { id: 'amadeus',        label: 'Provider: Amadeus',          step: 5 },
+            { id: 'travelfusion',   label: 'Provider: Travelfusion',     step: 5 },
+            { id: 'hotel-suppliers',label: 'Provider: Hotel Suppliers',  step: 5 },
+          ],
+          ratecore: [
+            { id: 'company',          label: 'Company Information',          step: 1 },
+            { id: 'commercial',       label: 'Commercial Contact',           step: 1 },
+            { id: 'technical',        label: 'Technical Contact',            step: 1 },
+            { id: 'finance',          label: 'Finance / Billing Contact',    step: 1 },
+            { id: 'forecast',         label: '12-Month Forecast Table',      step: 2 },
+            { id: 'forecast-context', label: 'Additional Context',           step: 2 },
+            { id: 'airports',         label: '3.1 — Top Departure Airports', step: 3 },
+            { id: 'destinations',     label: '3.2 — Top Destinations',       step: 3 },
+            { id: 'segments',         label: '3.3 — User Segments',          step: 3 },
+            { id: 'tech-stack',       label: '4.1 — Tech Stack',             step: 4 },
+            { id: 'integrations',     label: '4.2 — Existing Integrations',  step: 4 },
+            { id: 'branding',         label: '4.3 — White-Label & Branding', step: 4 },
+            { id: 'compliance',       label: '4.4 — Data & Compliance',      step: 4 },
+          ],
+        },
 
         async sendAdminOtp() {
           this.otpError = '';
@@ -1442,6 +1647,113 @@
           };
           localStorage.setItem('crmPromoteDraft', JSON.stringify(clientDraft));
           window.location.href = 'crm.html?promote=1';
+        },
+
+        // ── Form Builder helpers ──────────────────────────────────────────
+
+        get builderSections() {
+          return this.SECTIONS[this.builder.formType] || [];
+        },
+
+        get builderSteps() {
+          const steps = {};
+          this.builderSections.forEach(s => { steps[s.step] = true; });
+          const labels = { 1: 'Company & Contacts', 2: 'Market & Data', 3: 'Content', 4: 'Operations & Tech', 5: 'Provider Credentials' };
+          return Object.keys(steps).sort().map(n => ({ num: Number(n), label: labels[n] || 'Step ' + n }));
+        },
+
+        builderSectionsForStep(stepNum) {
+          return this.builderSections.filter(s => s.step === stepNum);
+        },
+
+        initBuilderSections() {
+          const sections = {};
+          this.builderSections.forEach(s => { sections[s.id] = true; });
+          this.builder.sections = sections;
+        },
+
+        selectAllSections(val) {
+          const sections = {};
+          this.builderSections.forEach(s => { sections[s.id] = val; });
+          this.builder.sections = sections;
+        },
+
+        openBuilder() {
+          this.view = 'builder';
+          if (Object.keys(this.builder.sections).length === 0) this.initBuilderSections();
+          this.loadTemplates();
+        },
+
+        resetBuilder() {
+          this.builder = { id: null, formType: 'holidayheroes', name: '', sections: {} };
+          this.initBuilderSections();
+          this.builderSaved = false;
+        },
+
+        async loadTemplates() {
+          this.templatesLoading = true;
+          try {
+            const res = await fetch('/api/templates?action=list', {
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
+            });
+            const data = await res.json();
+            if (data.ok) this.templates = data.templates;
+          } catch(e) {}
+          finally { this.templatesLoading = false; }
+        },
+
+        async saveTemplate() {
+          if (!this.builder.name) return;
+          this.builderSaving = true;
+          this.builderSaved = false;
+          try {
+            const res = await fetch('/api/templates', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-session-token': sessionStorage.getItem('adminToken') || '',
+              },
+              body: JSON.stringify(this.builder),
+            });
+            const data = await res.json();
+            if (data.ok) {
+              this.builder.id = data.id;
+              this.builderSaved = true;
+              await this.loadTemplates();
+              setTimeout(() => { this.builderSaved = false; }, 3000);
+            }
+          } catch(e) {}
+          finally { this.builderSaving = false; }
+        },
+
+        editTemplate(t) {
+          this.builder = { id: t.id, formType: t.formType, name: t.name, sections: { ...t.sections } };
+          // Ensure all current sections are represented
+          this.builderSections.forEach(s => {
+            if (!(s.id in this.builder.sections)) this.builder.sections[s.id] = true;
+          });
+        },
+
+        async deleteTemplate(id) {
+          if (!confirm('Delete this template?')) return;
+          try {
+            await fetch('/api/templates?id=' + id, {
+              method: 'DELETE',
+              headers: { 'x-session-token': sessionStorage.getItem('adminToken') || '' },
+            });
+            await this.loadTemplates();
+            if (this.builder.id === id) this.resetBuilder();
+          } catch(e) {}
+        },
+
+        copyTemplateLink(t) {
+          const base = location.origin;
+          const form = t.formType === 'holidayheroes' ? 'holidayheroes.html' : 'ratecore.html';
+          const url = `${base}/${form}?t=${t.id}`;
+          navigator.clipboard.writeText(url).then(() => {
+            this.copiedId = t.id;
+            setTimeout(() => { this.copiedId = ''; }, 2000);
+          });
         },
 
         formatDate(iso) {

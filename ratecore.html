@@ -189,7 +189,7 @@
       </div>
 
       <!-- 1.1 Company Information -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('company')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.1</span>
           <h2 class="text-base font-semibold text-slate-900">Company Information</h2>
@@ -236,7 +236,7 @@
       </div>
 
       <!-- 1.2 Commercial Contact -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('commercial')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.2</span>
           <h2 class="text-base font-semibold text-slate-900">Commercial Contact</h2>
@@ -262,7 +262,7 @@
       </div>
 
       <!-- 1.3 Technical Contact -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('technical')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.3</span>
           <h2 class="text-base font-semibold text-slate-900">Technical Contact</h2>
@@ -292,7 +292,7 @@
       </div>
 
       <!-- 1.4 Finance / Billing Contact -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" x-show="isSectionEnabled('finance')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">1.4</span>
           <h2 class="text-base font-semibold text-slate-900">Finance / Billing Contact</h2>
@@ -333,7 +333,7 @@
       </div>
 
       <!-- 12-month table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('forecast')">
         <h2 class="text-base font-semibold text-slate-900 mb-4">12-Month Forecast</h2>
         <div class="overflow-x-auto rounded-xl">
           <table class="w-full border-collapse min-w-[700px]">
@@ -382,7 +382,7 @@
       </div>
 
       <!-- Additional Context -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" x-show="isSectionEnabled('forecast-context')">
         <h2 class="text-base font-semibold text-slate-900 mb-5">Additional Context</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -413,7 +413,7 @@
       </div>
 
       <!-- 3.1 Top Departure Airports -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('airports')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">3.1</span>
           <h2 class="text-base font-semibold text-slate-900">Top Departure Airports <span class="text-slate-400 font-normal text-sm">(up to 10)</span></h2>
@@ -468,7 +468,7 @@
       </div>
 
       <!-- 3.2 Top Destinations -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('destinations')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">3.2</span>
           <h2 class="text-base font-semibold text-slate-900">Top Destinations <span class="text-slate-400 font-normal text-sm">(up to 10)</span></h2>
@@ -523,7 +523,7 @@
       </div>
 
       <!-- 3.3 User Segments -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" x-show="isSectionEnabled('segments')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">3.3</span>
           <h2 class="text-base font-semibold text-slate-900">User Segments & Travel Profile</h2>
@@ -571,7 +571,7 @@
       </div>
 
       <!-- 4.1 Tech Stack -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('tech-stack')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.1</span>
           <h2 class="text-base font-semibold text-slate-900">Tech Stack</h2>
@@ -605,7 +605,7 @@
       </div>
 
       <!-- 4.2 Existing Integrations -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('integrations')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.2</span>
           <h2 class="text-base font-semibold text-slate-900">Existing Integrations</h2>
@@ -635,7 +635,7 @@
       </div>
 
       <!-- 4.3 White-Label & Branding -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5" x-show="isSectionEnabled('branding')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.3</span>
           <h2 class="text-base font-semibold text-slate-900">White-Label & Branding</h2>
@@ -684,7 +684,7 @@
       </div>
 
       <!-- 4.4 Data & Compliance -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6" x-show="isSectionEnabled('compliance')">
         <div class="flex items-center gap-2 mb-5">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">4.4</span>
           <h2 class="text-base font-semibold text-slate-900">Data & Compliance</h2>
@@ -932,6 +932,7 @@
         submitting: false,
         submitted: false,
         showSummary: false,
+        template: null,
 
         // OTP verification state
         otpVerified: true,
@@ -967,7 +968,21 @@
           compliance: { gdpr: '', dataSharing: '', piiHandling: '', testEnv: '', sandboxPeriod: '', additionalNotes: '' },
         },
 
-        init() {
+        isSectionEnabled(id) {
+          if (!this.template || !this.template.sections) return true;
+          return this.template.sections[id] !== false;
+        },
+
+        async init() {
+          // Load template if ?t=ID in URL
+          const tId = new URLSearchParams(location.search).get('t');
+          if (tId) {
+            try {
+              const r = await fetch(`/api/templates?action=get&id=${tId}`);
+              const j = await r.json();
+              if (j.ok) this.template = j.data;
+            } catch(e) {}
+          }
           // Check if OTP already verified this session
           try {
             const savedToken = sessionStorage.getItem('move_rc_otp_token');
