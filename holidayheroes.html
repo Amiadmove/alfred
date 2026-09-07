@@ -302,6 +302,7 @@
                 <th class="text-left">Route / Destination</th>
                 <th class="text-center" style="width:100px">Domestic</th>
                 <th class="text-center" style="width:110px">International</th>
+                <th style="width:32px"></th>
               </tr>
             </thead>
             <tbody>
@@ -315,11 +316,22 @@
                   <td class="text-center">
                     <input type="checkbox" x-model="r.international" @change="save()" class="w-4 h-4 rounded" style="accent-color:#3689FB;" />
                   </td>
+                  <td class="text-center">
+                    <button @click="removeRow(d.routes, i)" type="button" class="text-slate-300 hover:text-red-400 transition-colors p-1 rounded">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </td>
                 </tr>
               </template>
             </tbody>
           </table>
         </div>
+        <button @click="addRow(d.routes, {name:'', domestic:false, international:false})" type="button"
+          class="mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+          style="color:#3689FB; background:#EBF3FF;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add Route
+        </button>
       </div>
 
       <!-- Q6 -->
@@ -361,6 +373,7 @@
                 <th class="text-center" style="width:70px">Direct</th>
                 <th class="text-center" style="width:60px">NDC</th>
                 <th class="text-center" style="width:90px">Negotiated</th>
+                <th style="width:32px"></th>
               </tr>
             </thead>
             <tbody>
@@ -385,11 +398,22 @@
                       <option value="">—</option><option>Yes</option><option>No</option>
                     </select>
                   </td>
+                  <td class="text-center">
+                    <button @click="removeRow(d.airContent, i)" type="button" class="text-slate-300 hover:text-red-400 transition-colors p-1 rounded">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </td>
                 </tr>
               </template>
             </tbody>
           </table>
         </div>
+        <button @click="addRow(d.airContent, {airline:'', gds:'', tf:'', aggregator:'', direct:'', ndc:'', negotiated:''})" type="button"
+          class="mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+          style="color:#3689FB; background:#EBF3FF;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add Airline
+        </button>
       </div>
 
       <!-- Q9: Hotel content -->
@@ -406,6 +430,7 @@
                 <th class="text-center" style="width:100px">Direct Connect</th>
                 <th class="text-left" style="width:150px">Aggregator / Channel Mgr</th>
                 <th class="text-left" style="width:100px">Other</th>
+                <th style="width:32px"></th>
               </tr>
             </thead>
             <tbody>
@@ -425,11 +450,22 @@
                   </td>
                   <td><input type="text" x-model="h.aggregator" @input="save()" class="table-input" placeholder="e.g. OTA, Channel Mgr" /></td>
                   <td><input type="text" x-model="h.other" @input="save()" class="table-input" placeholder="—" /></td>
+                  <td class="text-center">
+                    <button @click="removeRow(d.hotelContent, i)" type="button" class="text-slate-300 hover:text-red-400 transition-colors p-1 rounded">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </td>
                 </tr>
               </template>
             </tbody>
           </table>
         </div>
+        <button @click="addRow(d.hotelContent, {name:'', gds:'', bedbank:'', directConnect:'', aggregator:'', other:''})" type="button"
+          class="mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+          style="color:#3689FB; background:#EBF3FF;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add Hotel Supplier
+        </button>
       </div>
 
       <!-- Q10: Non-air content -->
@@ -443,6 +479,7 @@
                 <th class="text-left">Type</th>
                 <th class="text-left">Source / Connection</th>
                 <th class="text-center" style="width:110px">Negotiated Pricing</th>
+                <th style="width:32px"></th>
               </tr>
             </thead>
             <tbody>
@@ -455,11 +492,22 @@
                       <option value="">—</option><option>Yes</option><option>No</option>
                     </select>
                   </td>
+                  <td class="text-center">
+                    <button @click="removeRow(d.nonAirContent, i)" type="button" class="text-slate-300 hover:text-red-400 transition-colors p-1 rounded">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </td>
                 </tr>
               </template>
             </tbody>
           </table>
         </div>
+        <button @click="addRow(d.nonAirContent, {type:'', source:'', negotiated:''})" type="button"
+          class="mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+          style="color:#3689FB; background:#EBF3FF;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add Row
+        </button>
       </div>
     </div>
 
@@ -486,6 +534,7 @@
               <tr>
                 <th class="text-left">Tour Operator</th>
                 <th class="text-left">How are you connected?</th>
+                <th style="width:32px"></th>
               </tr>
             </thead>
             <tbody>
@@ -493,11 +542,22 @@
                 <tr>
                   <td><input type="text" x-model="t.name" @input="save()" class="table-input" placeholder="e.g. TUI" /></td>
                   <td><input type="text" x-model="t.connection" @input="save()" class="table-input" placeholder="e.g. API, XML feed, manual" /></td>
+                  <td class="text-center">
+                    <button @click="removeRow(d.tourOperators, i)" type="button" class="text-slate-300 hover:text-red-400 transition-colors p-1 rounded">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </td>
                 </tr>
               </template>
             </tbody>
           </table>
         </div>
+        <button x-show="d.resellTourOps === 'Yes'" @click="addRow(d.tourOperators, {name:'', connection:''})" type="button"
+          class="mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+          style="color:#3689FB; background:#EBF3FF;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add Tour Operator
+        </button>
       </div>
 
       <!-- Q12 -->
@@ -764,7 +824,12 @@
           <div class="space-y-3">
             <template x-for="(s, i) in d.providers.hotelSuppliers" :key="i">
               <div class="p-4 rounded-xl border border-slate-100 bg-slate-50">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3" x-text="`Supplier ${i+1}`"></p>
+                <div class="flex items-center justify-between mb-3">
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-wider" x-text="`Supplier ${i+1}`"></p>
+                  <button @click="removeRow(d.providers.hotelSuppliers, i)" type="button" class="text-slate-300 hover:text-red-400 transition-colors p-1 rounded">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label class="field-label">Supplier Name</label>
@@ -789,6 +854,12 @@
                 </div>
               </div>
             </template>
+            <button @click="addRow(d.providers.hotelSuppliers, {name:'', username:'', password:'', apiEndpoint:'', notes:''})" type="button"
+              class="mt-3 flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+              style="color:#3689FB; background:#EBF3FF;">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Add Supplier
+            </button>
           </div>
         </div>
       </div>
@@ -1098,6 +1169,9 @@
           this.d.destinationTags.splice(i, 1);
           this.save();
         },
+
+        addRow(arr, template) { arr.push(Object.assign({}, template)); this.save(); },
+        removeRow(arr, i) { arr.splice(i, 1); this.save(); },
 
         nextStep() { if (this.step < 5) { this.step++; this.save(); window.scrollTo({top:0,behavior:'smooth'}); } },
         prevStep() { if (this.step > 1) { this.step--; window.scrollTo({top:0,behavior:'smooth'}); } },
