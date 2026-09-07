@@ -720,6 +720,27 @@
           </div>
         </div>
       </div>
+      <!-- Custom sections from template -->
+      <template x-if="template && template.customSections && template.customSections.length > 0">
+        <div>
+          <template x-for="(field, i) in template.customSections" :key="i">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-5">
+              <h2 class="text-base font-semibold text-slate-900 mb-3" x-text="field.label"></h2>
+              <template x-if="field.type === 'textarea'">
+                <textarea x-model="customData[i]" rows="4"
+                  class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm"
+                  :placeholder="field.label"></textarea>
+              </template>
+              <template x-if="field.type !== 'textarea'">
+                <input :type="field.type || 'text'" x-model="customData[i]"
+                  class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm"
+                  :placeholder="field.label" />
+              </template>
+            </div>
+          </template>
+        </div>
+      </template>
+
     </div>
 
   </main>
@@ -933,6 +954,7 @@
         submitted: false,
         showSummary: false,
         template: null,
+        customData: {},
 
         // OTP verification state
         otpVerified: true,
@@ -1156,7 +1178,7 @@
                 'Content-Type': 'application/json',
                 'x-session-token': this.otpSessionToken,
               },
-              body: JSON.stringify({ ...this.data, _hp: this.honeypot, _hct: hcaptchaToken }),
+              body: JSON.stringify({ ...this.data, _hp: this.honeypot, _hct: hcaptchaToken, _customData: this.customData, _templateId: new URLSearchParams(location.search).get('t') }),
             });
             const json = await res.json();
             if (!json.ok) throw new Error(json.error || 'Submission failed');
