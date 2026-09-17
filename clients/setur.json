@@ -28,46 +28,88 @@
   "portalConfig": {
     "active": true,
     "welcomeTitle": "Welcome, Setur Team!",
-    "welcomeMessage": "This is your dedicated onboarding portal from Move. Here you'll find training videos, key resources, and everything you need to get up and running with the holidayheroes PRO platform.",
+    "welcomeMessage": "This is your dedicated onboarding portal from Move. Here you'll find training videos, test scenarios, UI translation tools, and everything you need to get up and running with the holidayheroes PRO platform.",
     "videos": [
+      { "id": "v1", "title": "Creating an Account and Setting Up Your Store", "loomId": "c7ffa3e8faf24994ad9fe1ecbb796ad6", "description": "Learn how to create your organization, set up your first store, and configure your basic settings." },
+      { "id": "v2", "title": "Store Settings — Admin", "loomId": "d52eb9dfc976446785146f2a054c55d3", "description": "A walkthrough of all admin-level store settings including branding, language, and market configuration." },
+      { "id": "v3", "title": "Invite Agents", "loomId": "fa864cedd09f4052aa7f39db195756e8", "description": "How to invite travel agents to your organization and manage their access levels." },
+      { "id": "v4", "title": "How to Work on Workspace", "loomId": "5353b180e01e47aea168d8dd7834516d", "description": "An introduction to the workspace — your main working area for building and sharing offers." },
+      { "id": "v5", "title": "Workspace Search and Booking Basics", "loomId": "2905178adaeb4f7f9539af4d2edf82fc", "description": "How to search for holidays, compare results, and add offers to your workspace lists." },
+      { "id": "v6", "title": "How to Search with AI Trip Finder", "loomId": "21de18608e72432a8396b4fdbfda5df8", "description": "Use the AI Trip Finder to let customers describe their ideal trip and get personalized results." },
+      { "id": "v7", "title": "How to Book More Than One Room", "loomId": "e9af07ede98e4b9caa82a3dd28873d67", "description": "Step-by-step guide to adding multiple rooms or packages within a single booking." },
+      { "id": "v8", "title": "Booking and Listing Hotel Stays", "loomId": "c7d13f9621434b728997b615a7fe60a9", "description": "How to search, customize, and list hotel-only stays on the holidayheroes PRO platform." }
+    ],
+    "scenarios": [
       {
-        "id": "1",
-        "title": "Platform Overview — Getting Started",
-        "youtubeUrl": "",
-        "description": "A complete walkthrough of the holidayheroes PRO platform and how your team will use it day to day."
+        "group": "Agency Setup & Agents",
+        "items": [
+          "Create a new store / organization",
+          "Upload logo via Brand Settings",
+          "Update profile picture and agency info",
+          "Create two additional stores under the same organization",
+          "Set commission, store language, and market per store",
+          "Invite a new agent and verify they can log in successfully",
+          "Log in and create an account as an agent using the invitation link received from admin",
+          "Set agent to inactive — verify the agent cannot log in"
+        ]
       },
       {
-        "id": "2",
-        "title": "Booking Flow & Search",
-        "youtubeUrl": "",
-        "description": "How to search, compare and book flights and hotels through the platform."
+        "group": "Pages, Lists & Profile",
+        "items": [
+          "Create 2–3 lists with different topics",
+          "Build and customize a personal profile page",
+          "Share a list via WhatsApp or copy link",
+          "Share your full profile page and continue as a client view"
+        ]
       },
       {
-        "id": "3",
-        "title": "Back Office & Reporting",
-        "youtubeUrl": "",
-        "description": "Managing bookings, refunds, and accessing your reporting dashboard."
+        "group": "Find Your Holiday & Package Customization",
+        "items": [
+          "Search for a holiday via feed or AI Trip Finder",
+          "Modify package details within the list",
+          "Check the Smart Calendar and decide whether to change dates or nights",
+          "Add luggage and additional services",
+          "Check alternative flights and rooms — switch if needed",
+          "After full customization, click Next to proceed to the checkout page"
+        ]
+      },
+      {
+        "group": "Mobile Check — Customer View",
+        "items": [
+          "Open the list link as a client",
+          "Select one of the offers",
+          "Customize the package and add services",
+          "Proceed to checkout and complete the flow up to the payment step"
+        ]
+      },
+      {
+        "group": "Mobile Check — Agent",
+        "items": [
+          "Log in to the site on mobile",
+          "Navigate and work within your workspace",
+          "Check your lists and public profile link — share both",
+          "Select one of the offers and go through the booking flow",
+          "Customize the package and add services",
+          "Proceed to checkout and complete the full flow up to the payment step"
+        ]
       }
     ],
+    "translationLinks": [
+      { "id": "t1", "title": "Landing Page", "description": "Customer-facing landing page — hero text, CTA buttons, feature descriptions.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=landing" },
+      { "id": "t2", "title": "Offer Page", "description": "The offer detail page shown to customers when they view a package.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=offer" },
+      { "id": "t3", "title": "Checkout", "description": "Passenger details, services selection, and payment screens.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?solo=checkout" },
+      { "id": "t4", "title": "Workspace", "description": "The agent workspace — search results, list management, and workspace controls.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=workspace" },
+      { "id": "t5", "title": "Store Management", "description": "Admin panels for managing stores, agents, and settings.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=workspace_storemange" },
+      { "id": "t6", "title": "Confirmation Email", "description": "The booking confirmation email sent to customers after a successful booking.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=cnf_email" }
+    ],
+    "feedbackEmail": "feedback@wearemove.io",
+    "externalLinks": [
+      { "id": "bugs", "title": "Bugs & Requests", "icon": "bug", "url": "https://www.notion.so/wearemove/d66d058147fa823ba4318139b0222d5f?v=42ed058147fa8229826888a39c9993cf&source=copy_link", "description": "Report bugs or request new features via our Notion board." },
+      { "id": "contact", "title": "Contact Us", "icon": "mail", "url": "https://holidayheroesss.zendesk.com/hc/tr-tr/requests/new?ticket_form_id=7923304898705", "description": "Open a support ticket with our team." }
+    ],
     "links": [
-      {
-        "id": "1",
-        "title": "holidayheroes PRO Documentation",
-        "url": "https://connect.holidayheroes.com",
-        "description": "Full technical documentation and integration guides for the PRO platform."
-      },
-      {
-        "id": "2",
-        "title": "Setur Connect Portal",
-        "url": "https://connect.holidayheroespro.com.tr",
-        "description": "Your dedicated partner connect portal — training materials and support."
-      },
-      {
-        "id": "3",
-        "title": "Move Support",
-        "url": "mailto:support@wearemove.io",
-        "description": "Reach out to your Move account team for any questions or support."
-      }
+      { "id": "1", "title": "holidayheroes PRO Documentation", "url": "https://connect.holidayheroes.com", "description": "Full technical documentation and integration guides for the PRO platform." },
+      { "id": "2", "title": "Setur Connect Portal", "url": "https://connect.holidayheroespro.com.tr", "description": "Your dedicated partner connect portal — training materials and support." }
     ]
   }
 }

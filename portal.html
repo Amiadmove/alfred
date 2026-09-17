@@ -156,6 +156,61 @@
       .welcome-title { font-size: 20px; }
     }
 
+    /* ── Scenario checklist ── */
+    .scenario-group { margin-bottom: 20px; }
+    .scenario-group-title { font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #94A3B8; margin-bottom: 10px; padding: 0 4px; }
+    .scenario-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 11px 14px; border-radius: 10px; background: white;
+      border: 1px solid #E2E8F0; margin-bottom: 7px; cursor: pointer;
+      transition: all 0.15s; user-select: none;
+    }
+    .scenario-item:hover { border-color: #CBD5E1; }
+    .scenario-item.done { background: #F0FDF4; border-color: #BBF7D0; }
+    .scenario-checkbox {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+      border: 2px solid #CBD5E1; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .scenario-item.done .scenario-checkbox { background: #22C55E; border-color: #22C55E; }
+    .scenario-item.done .scenario-checkbox::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+    .scenario-item-text { font-size: 13px; color: #334155; line-height: 1.5; }
+    .scenario-item.done .scenario-item-text { color: #86EFAC; text-decoration: line-through; }
+
+    /* ── Translation cards ── */
+    .translation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+    .translation-card {
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 22px;
+      text-decoration: none; display: block; transition: all 0.18s;
+    }
+    .translation-card:hover { border-color: #3689FB; box-shadow: 0 4px 16px rgba(54,137,251,0.1); transform: translateY(-2px); }
+    .translation-card-icon { font-size: 24px; margin-bottom: 10px; }
+    .translation-card-title { font-size: 14px; font-weight: 700; color: #152656; margin-bottom: 5px; }
+    .translation-card-desc { font-size: 12px; color: #64748B; line-height: 1.5; }
+
+    /* ── Feedback ── */
+    .feedback-stars { display: flex; gap: 8px; margin-bottom: 20px; }
+    .star-btn { font-size: 28px; background: none; border: none; cursor: pointer; opacity: 0.3; transition: opacity 0.15s, transform 0.1s; }
+    .star-btn.active { opacity: 1; }
+    .star-btn:hover { transform: scale(1.15); opacity: 1; }
+    .feedback-textarea { width: 100%; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; font-size: 14px; resize: vertical; min-height: 100px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+    .feedback-textarea:focus { border-color: #3689FB; }
+
+    /* ── Copy link chip ── */
+    .copy-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: #EBF3FF; color: #3689FB; border: none; cursor: pointer;
+      border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600;
+      transition: all 0.15s;
+    }
+    .copy-chip:hover { background: #DBEAFE; }
+    .copy-chip.copied { background: #D1FAE5; color: #065F46; }
+
+    /* ── Sidebar external link ── */
+    .nav-external { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
+    .nav-external:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+    .nav-section-divider { margin: 8px 12px; border: none; border-top: 1px solid rgba(255,255,255,0.08); }
+
     /* ── Not found / loading ── */
     #loading-state, #error-state { display: flex; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
     #portal-app { display: none; }
@@ -205,6 +260,10 @@
           <span class="portal-topbar-title" id="topbar-section-title">Welcome</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
+          <button class="copy-chip" id="copy-link-btn" onclick="copyPortalLink()">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span id="copy-link-label">Copy link</span>
+          </button>
           <img src="move.svg" alt="Move" style="height:20px;opacity:0.4;" />
         </div>
       </div>
@@ -239,6 +298,39 @@
           <div class="section-heading">Resources & Links</div>
           <div class="section-sub">Everything you need in one place.</div>
           <div id="links-list"></div>
+        </div>
+
+        <!-- Scenarios section -->
+        <div class="page-section" id="section-scenarios">
+          <div class="section-heading">Test Scenarios</div>
+          <div class="section-sub">Work through these scenarios to validate the platform end-to-end. Click each item to mark it as done.</div>
+          <div id="scenarios-list"></div>
+        </div>
+
+        <!-- UI Translation section -->
+        <div class="page-section" id="section-translation">
+          <div class="section-heading">UI Translation</div>
+          <div class="section-sub">Review each platform page and add Turkish translations. Click any page to open the translation editor.</div>
+          <div class="translation-grid" id="translation-list"></div>
+        </div>
+
+        <!-- Feedback section -->
+        <div class="page-section" id="section-feedback">
+          <div class="section-heading">Feedback</div>
+          <div class="section-sub">How is the platform working for you? Your feedback helps us improve.</div>
+          <div class="content-card" style="max-width:560px;">
+            <div id="feedback-form-wrap">
+              <p style="font-size:13px;font-weight:600;color:#152656;margin-bottom:12px;">How would you rate your experience so far?</p>
+              <div class="feedback-stars" id="stars-row"></div>
+              <textarea class="feedback-textarea" id="feedback-text" placeholder="Tell us what's working well, what could be better, or anything else on your mind..."></textarea>
+              <button onclick="submitFeedback()" style="margin-top:14px;background:#152656;color:white;border:none;border-radius:12px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;">Send Feedback</button>
+            </div>
+            <div id="feedback-success" style="display:none;text-align:center;padding:20px 0;">
+              <div style="font-size:32px;margin-bottom:12px;">🙏</div>
+              <p style="font-size:16px;font-weight:700;color:#152656;">Thank you for your feedback!</p>
+              <p style="font-size:13px;color:#64748B;margin-top:6px;">We'll review it and get back to you if needed.</p>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -292,6 +384,9 @@
     // Build nav + overview grid + sections
     buildNav(cfg);
     if (cfg.videos && cfg.videos.length) buildVideos(cfg.videos);
+    if (cfg.scenarios && cfg.scenarios.length) buildScenarios(cfg.scenarios);
+    if (cfg.translationLinks && cfg.translationLinks.length) buildTranslation(cfg.translationLinks);
+    if (cfg.feedbackEmail || cfg.feedbackUrl) buildFeedback(cfg.feedbackEmail || cfg.feedbackUrl);
     if (cfg.links && cfg.links.length) buildLinks(cfg.links);
 
     // Mobile
@@ -304,8 +399,11 @@
 
   // ── Nav & Overview ──────────────────────────────
   const SECTIONS = [
-    { id: 'videos', label: 'Training Videos', icon: '🎬', key: 'videos' },
-    { id: 'links',  label: 'Resources & Links', icon: '🔗', key: 'links' },
+    { id: 'videos',      label: 'Training Videos',  icon: '🎬', key: 'videos' },
+    { id: 'scenarios',   label: 'Test Scenarios',    icon: '✅', key: 'scenarios' },
+    { id: 'translation', label: 'UI Translation',    icon: '🌐', key: 'translationLinks' },
+    { id: 'feedback',    label: 'Feedback',          icon: '💬', key: null },
+    { id: 'links',       label: 'Resources & Links', icon: '🔗', key: 'links' },
   ];
 
   function buildNav(cfg) {
@@ -321,24 +419,45 @@
     navList.appendChild(homeBtn);
 
     SECTIONS.forEach(s => {
-      const items = cfg[s.key] || [];
-      if (!items.length) return;
+      const items = s.key ? (cfg[s.key] || []) : null;
+      const count = items ? items.length : null;
+      if (s.key && !count) return; // skip empty keyed sections
+      if (!s.key && s.id === 'feedback' && !cfg.feedbackEmail && !cfg.feedbackUrl) return;
 
-      // Nav item
       const btn = document.createElement('button');
       btn.className = 'nav-item';
       btn.dataset.target = s.id;
-      btn.innerHTML = `<span class="nav-icon">${s.icon}</span> ${s.label} <span style="margin-left:auto;background:rgba(255,255,255,0.12);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;">${items.length}</span>`;
+      const badge = count ? `<span style="margin-left:auto;background:rgba(255,255,255,0.12);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;">${count}</span>` : '';
+      btn.innerHTML = `<span class="nav-icon">${s.icon}</span> ${s.label} ${badge}`;
       btn.addEventListener('click', () => navigateTo(s.id, s.label, btn));
       navList.appendChild(btn);
 
-      // Overview grid card
       const card = document.createElement('div');
       card.className = 'overview-card';
-      card.innerHTML = `<div class="overview-card-icon">${s.icon}</div><div class="overview-card-label">${s.label}</div><div class="overview-card-count">${items.length} item${items.length !== 1 ? 's' : ''}</div>`;
+      card.innerHTML = `<div class="overview-card-icon">${s.icon}</div><div class="overview-card-label">${s.label}</div><div class="overview-card-count">${count ? count + ' item' + (count !== 1 ? 's' : '') : 'Send feedback'}</div>`;
       card.addEventListener('click', () => navigateTo(s.id, s.label, btn));
       overviewGrid.appendChild(card);
     });
+
+    // External links (Bugs, Contact) at bottom of sidebar
+    const ext = cfg.externalLinks || [];
+    if (ext.length) {
+      const divider = document.createElement('hr');
+      divider.className = 'nav-section-divider';
+      navList.appendChild(divider);
+      ext.forEach(l => {
+        const a = document.createElement('a');
+        a.className = 'nav-external';
+        a.href = l.url || '#';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        const iconSvg = l.icon === 'bug'
+          ? `<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+          : `<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`;
+        a.innerHTML = `${iconSvg} ${l.title} <svg style="margin-left:auto;opacity:0.4" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
+        navList.appendChild(a);
+      });
+    }
   }
 
   function navigateTo(sectionId, label, navBtn) {
@@ -362,19 +481,25 @@
   };
 
   // ── Videos ──────────────────────────────────────
-  function getYouTubeId(url) {
-    if (!url) return null;
-    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return m ? m[1] : null;
+  function getVideoEmbed(v) {
+    if (v.loomId) {
+      return {
+        embedUrl: `https://www.loom.com/embed/${v.loomId}?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true`,
+        thumbUrl: `https://cdn.loom.com/sessions/thumbnails/${v.loomId}-with-play.gif`,
+      };
+    }
+    if (v.youtubeUrl) {
+      const m = v.youtubeUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      const ytId = m ? m[1] : v.youtubeUrl.length === 11 ? v.youtubeUrl : null;
+      if (ytId) return { embedUrl: `https://www.youtube.com/embed/${ytId}?autoplay=1`, thumbUrl: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` };
+    }
+    return { embedUrl: null, thumbUrl: null };
   }
 
   function buildVideos(videos) {
     const list = document.getElementById('videos-list');
     videos.forEach(v => {
-      const ytId = getYouTubeId(v.youtubeUrl);
-      const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : null;
-      const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?autoplay=1` : null;
-
+      const { embedUrl, thumbUrl } = getVideoEmbed(v);
       const card = document.createElement('div');
       card.className = 'content-card' + (embedUrl ? ' clickable' : '');
       card.innerHTML = `
@@ -389,12 +514,93 @@
         <div class="video-title">${v.title || 'Untitled'}</div>
         ${v.description ? `<div class="video-desc">${v.description}</div>` : ''}
       `;
-      if (embedUrl) {
-        card.addEventListener('click', () => openVideoModal(v.title, embedUrl));
-      }
+      if (embedUrl) card.addEventListener('click', () => openVideoModal(v.title, embedUrl));
       list.appendChild(card);
     });
   }
+
+  // ── Scenarios ────────────────────────────────────
+  function buildScenarios(scenarios) {
+    const container = document.getElementById('scenarios-list');
+    // Load saved state
+    const storageKey = 'portal_scenarios_' + (new URLSearchParams(location.search).get('client') || '');
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+    scenarios.forEach((group, gi) => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'scenario-group';
+      groupEl.innerHTML = `<div class="scenario-group-title">${group.group}</div>`;
+      group.items.forEach((item, ii) => {
+        const key = `${gi}-${ii}`;
+        const div = document.createElement('div');
+        div.className = 'scenario-item' + (saved[key] ? ' done' : '');
+        div.innerHTML = `<div class="scenario-checkbox"></div><div class="scenario-item-text">${item}</div>`;
+        div.addEventListener('click', () => {
+          div.classList.toggle('done');
+          saved[key] = div.classList.contains('done');
+          localStorage.setItem(storageKey, JSON.stringify(saved));
+        });
+        groupEl.appendChild(div);
+      });
+      container.appendChild(groupEl);
+    });
+  }
+
+  // ── Translation ──────────────────────────────────
+  function buildTranslation(links) {
+    const grid = document.getElementById('translation-list');
+    const icons = ['📄', '🎁', '🛒', '🖥️', '⚙️', '📧'];
+    links.forEach((l, i) => {
+      const a = document.createElement('a');
+      a.className = 'translation-card';
+      a.href = l.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.innerHTML = `
+        <div class="translation-card-icon">${icons[i] || '📄'}</div>
+        <div class="translation-card-title">${l.title}</div>
+        <div class="translation-card-desc">${l.description || ''}</div>
+      `;
+      grid.appendChild(a);
+    });
+  }
+
+  // ── Feedback ─────────────────────────────────────
+  function buildFeedback(email) {
+    let rating = 0;
+    const starsRow = document.getElementById('stars-row');
+    if (starsRow) {
+      ['😞','😐','🙂','😊','🤩'].forEach((emoji, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'star-btn';
+        btn.textContent = emoji;
+        btn.addEventListener('click', () => {
+          rating = i + 1;
+          document.querySelectorAll('.star-btn').forEach((b, j) => b.classList.toggle('active', j <= i));
+        });
+        starsRow.appendChild(btn);
+      });
+    }
+    window.submitFeedback = function() {
+      const text = document.getElementById('feedback-text').value.trim();
+      const subject = encodeURIComponent('Portal Feedback');
+      const body = encodeURIComponent(`Rating: ${'⭐'.repeat(rating) || 'No rating'}\n\n${text}`);
+      window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+      document.getElementById('feedback-form-wrap').style.display = 'none';
+      document.getElementById('feedback-success').style.display = 'block';
+    };
+  }
+
+  // ── Copy portal link ─────────────────────────────
+  window.copyPortalLink = function() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      const btn = document.getElementById('copy-link-btn');
+      const label = document.getElementById('copy-link-label');
+      btn.classList.add('copied');
+      label.textContent = 'Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); label.textContent = 'Copy link'; }, 2500);
+    });
+  };
 
   function openVideoModal(title, embedUrl) {
     document.getElementById('modal-video-title').textContent = title || '';
