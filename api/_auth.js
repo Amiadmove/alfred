@@ -8,6 +8,13 @@ function checkAdminAuth(req) {
     if (data && data.type === 'admin-session') return true;
   }
 
+  // Dev bypass (local only — DEV_ADMIN_PASSWORD not set in Vercel cloud)
+  const devPassword = process.env.DEV_ADMIN_PASSWORD;
+  if (devPassword) {
+    const provided = req.headers['x-admin-password'];
+    if (provided && provided === devPassword) return true;
+  }
+
   // Fallback: password-based auth
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword) return true;
