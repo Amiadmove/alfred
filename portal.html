@@ -266,7 +266,7 @@
 
   if (!clientId) return showError('No client specified', 'Add ?client=yourname to the URL.');
 
-  fetch(`/portal-config/${encodeURIComponent(clientId)}`)
+  fetch(`/api/portal-config/${encodeURIComponent(clientId)}`)
     .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e.error || 'Not found')))
     .then(data => initPortal(data))
     .catch(err => showError('Portal not found', typeof err === 'string' ? err : 'This portal may be inactive or unavailable.'));
