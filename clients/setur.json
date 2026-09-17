@@ -24,5 +24,50 @@
     { "role": "Technical", "name": "", "email": "", "phone": "" },
     { "role": "Finance", "name": "", "email": "", "phone": "" }
   ],
-  "notes": "Critical open points: (1) FX clause missing — propose ECB equivalent to Setur in writing. (2) GBV must be end-customer price (line 8 in Notion), not our invoice to Setur — need agent selling price from Setur per booking or revenue share is systematically understated. (3) Confirm markup chain mechanic (price differential vs commission invoice) with Setur."
+  "notes": "Critical open points: (1) FX clause missing — propose ECB equivalent to Setur in writing. (2) GBV must be end-customer price (line 8 in Notion), not our invoice to Setur — need agent selling price from Setur per booking or revenue share is systematically understated. (3) Confirm markup chain mechanic (price differential vs commission invoice) with Setur.",
+  "portalConfig": {
+    "active": true,
+    "welcomeTitle": "Welcome, Setur Team!",
+    "welcomeMessage": "This is your dedicated onboarding portal from Move. Here you'll find training videos, key resources, and everything you need to get up and running with the holidayheroes PRO platform.",
+    "videos": [
+      {
+        "id": "1",
+        "title": "Platform Overview — Getting Started",
+        "youtubeUrl": "",
+        "description": "A complete walkthrough of the holidayheroes PRO platform and how your team will use it day to day."
+      },
+      {
+        "id": "2",
+        "title": "Booking Flow & Search",
+        "youtubeUrl": "",
+        "description": "How to search, compare and book flights and hotels through the platform."
+      },
+      {
+        "id": "3",
+        "title": "Back Office & Reporting",
+        "youtubeUrl": "",
+        "description": "Managing bookings, refunds, and accessing your reporting dashboard."
+      }
+    ],
+    "links": [
+      {
+        "id": "1",
+        "title": "holidayheroes PRO Documentation",
+        "url": "https://connect.holidayheroes.com",
+        "description": "Full technical documentation and integration guides for the PRO platform."
+      },
+      {
+        "id": "2",
+        "title": "Setur Connect Portal",
+        "url": "https://connect.holidayheroespro.com.tr",
+        "description": "Your dedicated partner connect portal — training materials and support."
+      },
+      {
+        "id": "3",
+        "title": "Move Support",
+        "url": "mailto:support@wearemove.io",
+        "description": "Reach out to your Move account team for any questions or support."
+      }
+    ]
+  }
 }

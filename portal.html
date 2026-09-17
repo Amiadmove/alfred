@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Partner Portal — Move</title>
+  <link rel="icon" type="image/svg+xml" href="move.svg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F9FC; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .portal-layout { display: flex; min-height: 100vh; }
+    .portal-sidebar {
+      width: 260px; flex-shrink: 0;
+      background: #152656;
+      display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .sidebar-brand { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+    .sidebar-logo { height: 28px; width: auto; filter: brightness(0) invert(1); }
+    .sidebar-client-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.45); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 12px; }
+
+    .nav-list { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      cursor: pointer; transition: background 0.15s;
+      color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active { background: rgba(54,137,251,0.25); color: white; }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+    /* ── Main ── */
+    .portal-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .portal-topbar {
+      background: white; border-bottom: 1px solid #E2E8F0;
+      padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 20;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .portal-topbar-title { font-size: 15px; font-weight: 600; color: #152656; }
+    .portal-content { padding: 36px 32px; max-width: 860px; }
+
+    /* ── Page sections ── */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* ── Cards ── */
+    .content-card {
+      background: white; border: 1px solid #E2E8F0; border-radius: 16px;
+      padding: 28px; margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: box-shadow 0.18s, transform 0.18s;
+    }
+    .content-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .content-card.clickable { cursor: pointer; }
+
+    /* ── Video card ── */
+    .video-thumb {
+      width: 100%; aspect-ratio: 16/9;
+      background: #152656; border-radius: 10px; overflow: hidden;
+      margin-bottom: 14px; position: relative;
+    }
+    .video-thumb iframe { width: 100%; height: 100%; border: none; }
+    .video-play-overlay {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(21,38,86,0.55); border-radius: 10px; cursor: pointer;
+    }
+    .video-play-btn {
+      width: 56px; height: 56px; border-radius: 50%; background: white;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .video-play-btn svg { width: 22px; height: 22px; color: #152656; margin-left: 3px; }
+    .video-title { font-size: 15px; font-weight: 700; color: #152656; margin-bottom: 6px; }
+    .video-desc { font-size: 13px; color: #64748B; line-height: 1.6; }
+
+    /* ── Link card ── */
+    .link-card {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
+      padding: 20px 24px; margin-bottom: 12px; text-decoration: none;
+      transition: all 0.18s;
+    }
+    .link-card:hover { border-color: #3689FB; box-shadow: 0 4px 16px rgba(54,137,251,0.1); transform: translateY(-1px); }
+    .link-icon {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: #EBF3FF; display: flex; align-items: center; justify-content: center;
+    }
+    .link-icon svg { width: 18px; height: 18px; color: #3689FB; }
+    .link-title { font-size: 14px; font-weight: 700; color: #152656; margin-bottom: 4px; }
+    .link-desc { font-size: 12px; color: #64748B; line-height: 1.5; }
+    .link-arrow { margin-left: auto; flex-shrink: 0; padding-top: 2px; color: #CBD5E1; }
+
+    /* ── Section header ── */
+    .section-heading { font-size: 22px; font-weight: 700; color: #152656; margin-bottom: 6px; }
+    .section-sub { font-size: 14px; color: #64748B; margin-bottom: 28px; line-height: 1.6; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #94A3B8; margin-bottom: 14px; }
+
+    /* ── Overview ── */
+    .welcome-banner {
+      background: linear-gradient(135deg, #152656 0%, #1e3a7a 100%);
+      border-radius: 20px; padding: 36px 40px; margin-bottom: 28px; color: white;
+    }
+    .welcome-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(54,137,251,0.25); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD; margin-bottom: 16px; }
+    .welcome-title { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
+    .welcome-msg { font-size: 14px; color: rgba(255,255,255,0.72); line-height: 1.7; max-width: 520px; }
+
+    .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .overview-card {
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px;
+      cursor: pointer; transition: all 0.18s; text-align: center;
+    }
+    .overview-card:hover { border-color: #3689FB; box-shadow: 0 4px 16px rgba(54,137,251,0.1); transform: translateY(-2px); }
+    .overview-card-icon { font-size: 28px; margin-bottom: 10px; }
+    .overview-card-label { font-size: 13px; font-weight: 600; color: #152656; }
+    .overview-card-count { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+
+    /* ── Video modal ── */
+    .video-modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 100;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .video-modal-backdrop.open { display: flex; }
+    .video-modal {
+      background: #0f172a; border-radius: 16px; width: 100%; max-width: 860px;
+      overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+    .video-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; }
+    .video-modal-title { font-size: 14px; font-weight: 600; color: white; }
+    .video-modal-close {
+      background: rgba(255,255,255,0.1); border: none; color: white;
+      width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .video-modal-close:hover { background: rgba(255,255,255,0.2); }
+    .video-modal-frame { width: 100%; aspect-ratio: 16/9; }
+    .video-modal-frame iframe { width: 100%; height: 100%; border: none; }
+
+    /* ── Mobile ── */
+    .hamburger-btn { display: none; }
+    .sidebar-overlay { display: none; }
+    @media (max-width: 768px) {
+      .portal-sidebar { position: fixed; left: -260px; top: 0; z-index: 50; transition: left 0.25s; }
+      .portal-sidebar.mobile-open { left: 0; }
+      .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+      .sidebar-overlay.mobile-open { opacity: 1; pointer-events: all; }
+      .hamburger-btn { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; padding: 4px; }
+      .portal-content { padding: 24px 16px; }
+      .portal-topbar { padding: 12px 16px; }
+      .welcome-banner { padding: 24px 22px; }
+      .welcome-title { font-size: 20px; }
+    }
+
+    /* ── Not found / loading ── */
+    #loading-state, #error-state { display: flex; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+    #portal-app { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-state">
+  <svg class="animate-spin" style="width:32px;height:32px;color:#3689FB;" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+  </svg>
+  <p style="color:#94A3B8;font-size:14px;">Loading your portal...</p>
+</div>
+
+<!-- Error -->
+<div id="error-state" style="display:none;">
+  <img src="move.svg" alt="Move" style="height:28px;opacity:0.25;" />
+  <p style="color:#152656;font-size:18px;font-weight:700;" id="error-title">Portal not found</p>
+  <p style="color:#94A3B8;font-size:14px;" id="error-msg">This link may be invalid or inactive. Contact your Move account manager.</p>
+</div>
+
+<!-- Portal App -->
+<div id="portal-app">
+  <div class="portal-layout">
+
+    <!-- Sidebar -->
+    <aside class="portal-sidebar" id="portal-sidebar">
+      <div class="sidebar-brand" onclick="goHome()">
+        <img src="move.svg" alt="Move" class="sidebar-logo" />
+        <div class="sidebar-client-name" id="sidebar-client-name">Partner Portal</div>
+      </div>
+      <nav class="nav-list" id="nav-list"></nav>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Main -->
+    <div class="portal-main">
+      <div class="portal-topbar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#152656" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <span class="portal-topbar-title" id="topbar-section-title">Welcome</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <img src="move.svg" alt="Move" style="height:20px;opacity:0.4;" />
+        </div>
+      </div>
+
+      <div class="portal-content">
+
+        <!-- Overview section -->
+        <div class="page-section active" id="section-overview">
+          <div class="welcome-banner">
+            <div class="welcome-badge">
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+              Partner Portal
+            </div>
+            <div class="welcome-title" id="welcome-title">Welcome!</div>
+            <div class="welcome-msg" id="welcome-msg"></div>
+          </div>
+
+          <!-- Quick nav grid -->
+          <div class="section-label">Quick Access</div>
+          <div class="overview-grid" id="overview-grid"></div>
+        </div>
+
+        <!-- Videos section -->
+        <div class="page-section" id="section-videos">
+          <div class="section-heading">Training Videos</div>
+          <div class="section-sub">Watch these videos to get up and running quickly.</div>
+          <div id="videos-list"></div>
+        </div>
+
+        <!-- Links section -->
+        <div class="page-section" id="section-links">
+          <div class="section-heading">Resources & Links</div>
+          <div class="section-sub">Everything you need in one place.</div>
+          <div id="links-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div class="video-modal-backdrop" id="video-modal" onclick="closeVideoModal(event)">
+  <div class="video-modal" onclick="event.stopPropagation()">
+    <div class="video-modal-header">
+      <span class="video-modal-title" id="modal-video-title"></span>
+      <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+    </div>
+    <div class="video-modal-frame">
+      <iframe id="modal-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const clientId = params.get('client');
+
+  if (!clientId) return showError('No client specified', 'Add ?client=yourname to the URL.');
+
+  fetch(`/portal-config/${encodeURIComponent(clientId)}`)
+    .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e.error || 'Not found')))
+    .then(data => initPortal(data))
+    .catch(err => showError('Portal not found', typeof err === 'string' ? err : 'This portal may be inactive or unavailable.'));
+
+  function showError(title, msg) {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('error-state').style.display = 'flex';
+    document.getElementById('error-title').textContent = title;
+    document.getElementById('error-msg').textContent = msg;
+  }
+
+  function initPortal(data) {
+    const cfg = data.portalConfig;
+    document.title = `${data.name} — Partner Portal`;
+
+    // Sidebar client name
+    document.getElementById('sidebar-client-name').textContent = data.name;
+
+    // Welcome
+    document.getElementById('welcome-title').textContent = cfg.welcomeTitle || `Welcome, ${data.name}!`;
+    document.getElementById('welcome-msg').textContent = cfg.welcomeMessage || '';
+
+    // Build nav + overview grid + sections
+    buildNav(cfg);
+    if (cfg.videos && cfg.videos.length) buildVideos(cfg.videos);
+    if (cfg.links && cfg.links.length) buildLinks(cfg.links);
+
+    // Mobile
+    initMobile();
+
+    // Show app
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('portal-app').style.display = 'block';
+  }
+
+  // ── Nav & Overview ──────────────────────────────
+  const SECTIONS = [
+    { id: 'videos', label: 'Training Videos', icon: '🎬', key: 'videos' },
+    { id: 'links',  label: 'Resources & Links', icon: '🔗', key: 'links' },
+  ];
+
+  function buildNav(cfg) {
+    const navList = document.getElementById('nav-list');
+    const overviewGrid = document.getElementById('overview-grid');
+
+    // Overview card always first
+    const homeBtn = document.createElement('button');
+    homeBtn.className = 'nav-item active';
+    homeBtn.dataset.target = 'overview';
+    homeBtn.innerHTML = `<span class="nav-icon">🏠</span> Overview`;
+    homeBtn.addEventListener('click', () => navigateTo('overview', 'Welcome', homeBtn));
+    navList.appendChild(homeBtn);
+
+    SECTIONS.forEach(s => {
+      const items = cfg[s.key] || [];
+      if (!items.length) return;
+
+      // Nav item
+      const btn = document.createElement('button');
+      btn.className = 'nav-item';
+      btn.dataset.target = s.id;
+      btn.innerHTML = `<span class="nav-icon">${s.icon}</span> ${s.label} <span style="margin-left:auto;background:rgba(255,255,255,0.12);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;">${items.length}</span>`;
+      btn.addEventListener('click', () => navigateTo(s.id, s.label, btn));
+      navList.appendChild(btn);
+
+      // Overview grid card
+      const card = document.createElement('div');
+      card.className = 'overview-card';
+      card.innerHTML = `<div class="overview-card-icon">${s.icon}</div><div class="overview-card-label">${s.label}</div><div class="overview-card-count">${items.length} item${items.length !== 1 ? 's' : ''}</div>`;
+      card.addEventListener('click', () => navigateTo(s.id, s.label, btn));
+      overviewGrid.appendChild(card);
+    });
+  }
+
+  function navigateTo(sectionId, label, navBtn) {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    navBtn && navBtn.classList.add('active');
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    const section = document.getElementById('section-' + sectionId);
+    if (section) section.classList.add('active');
+    document.getElementById('topbar-section-title').textContent = label;
+    closeMobileSidebar();
+  }
+
+  window.goHome = function() {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    const homeBtn = document.querySelector('.nav-item[data-target="overview"]');
+    if (homeBtn) homeBtn.classList.add('active');
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-overview').classList.add('active');
+    document.getElementById('topbar-section-title').textContent = 'Welcome';
+    closeMobileSidebar();
+  };
+
+  // ── Videos ──────────────────────────────────────
+  function getYouTubeId(url) {
+    if (!url) return null;
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  function buildVideos(videos) {
+    const list = document.getElementById('videos-list');
+    videos.forEach(v => {
+      const ytId = getYouTubeId(v.youtubeUrl);
+      const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : null;
+      const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}?autoplay=1` : null;
+
+      const card = document.createElement('div');
+      card.className = 'content-card' + (embedUrl ? ' clickable' : '');
+      card.innerHTML = `
+        ${thumbUrl ? `
+        <div class="video-thumb" style="background-image:url('${thumbUrl}');background-size:cover;background-position:center;">
+          ${embedUrl ? `<div class="video-play-overlay">
+            <div class="video-play-btn">
+              <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>` : ''}
+        </div>` : ''}
+        <div class="video-title">${v.title || 'Untitled'}</div>
+        ${v.description ? `<div class="video-desc">${v.description}</div>` : ''}
+      `;
+      if (embedUrl) {
+        card.addEventListener('click', () => openVideoModal(v.title, embedUrl));
+      }
+      list.appendChild(card);
+    });
+  }
+
+  function openVideoModal(title, embedUrl) {
+    document.getElementById('modal-video-title').textContent = title || '';
+    document.getElementById('modal-iframe').src = embedUrl;
+    document.getElementById('video-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  window.closeVideoModal = function(e) {
+    if (e && e.target !== document.getElementById('video-modal')) return;
+    document.getElementById('video-modal').classList.remove('open');
+    document.getElementById('modal-iframe').src = '';
+    document.body.style.overflow = '';
+  };
+
+  // close modal with X button (no event param)
+  const originalClose = window.closeVideoModal;
+  window.closeVideoModal = function(e) {
+    if (e && e instanceof MouseEvent && e.target !== document.getElementById('video-modal')) return;
+    document.getElementById('video-modal').classList.remove('open');
+    document.getElementById('modal-iframe').src = '';
+    document.body.style.overflow = '';
+  };
+
+  // ── Links ────────────────────────────────────────
+  function buildLinks(links) {
+    const list = document.getElementById('links-list');
+    links.forEach(l => {
+      const a = document.createElement('a');
+      a.className = 'link-card';
+      a.href = l.url || '#';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.innerHTML = `
+        <div class="link-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        </div>
+        <div>
+          <div class="link-title">${l.title || 'Link'}</div>
+          ${l.description ? `<div class="link-desc">${l.description}</div>` : ''}
+        </div>
+        <div class="link-arrow">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </div>
+      `;
+      list.appendChild(a);
+    });
+  }
+
+  // ── Mobile ───────────────────────────────────────
+  function initMobile() {
+    const hamburger = document.getElementById('hamburger-btn');
+    const overlay   = document.getElementById('sidebar-overlay');
+    if (hamburger) hamburger.addEventListener('click', () => {
+      document.getElementById('portal-sidebar').classList.toggle('mobile-open');
+      overlay.classList.toggle('mobile-open');
+    });
+    if (overlay) overlay.addEventListener('click', closeMobileSidebar);
+  }
+
+  function closeMobileSidebar() {
+    document.getElementById('portal-sidebar')?.classList.remove('mobile-open');
+    document.getElementById('sidebar-overlay')?.classList.remove('mobile-open');
+  }
+
+})();
+</script>
+
+</body>
+</html>
