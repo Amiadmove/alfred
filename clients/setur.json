@@ -107,9 +107,6 @@
       { "id": "bugs", "title": "Bugs & Requests", "icon": "bug", "url": "https://www.notion.so/wearemove/d66d058147fa823ba4318139b0222d5f?v=42ed058147fa8229826888a39c9993cf&source=copy_link", "description": "Report bugs or request new features via our Notion board." },
       { "id": "contact", "title": "Contact Us", "icon": "mail", "url": "https://holidayheroesss.zendesk.com/hc/tr-tr/requests/new?ticket_form_id=7923304898705", "description": "Open a support ticket with our team." }
     ],
-    "links": [
-      { "id": "1", "title": "holidayheroes PRO Documentation", "url": "https://connect.holidayheroes.com", "description": "Full technical documentation and integration guides for the PRO platform." },
-      { "id": "2", "title": "Setur Connect Portal", "url": "https://connect.holidayheroespro.com.tr", "description": "Your dedicated partner connect portal — training materials and support." }
-    ]
+    "links": []
   }
 }
