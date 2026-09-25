@@ -22,7 +22,7 @@
     }
 
     const apiBase = window.BACKEND_URL_OVERRIDE || '';
-    fetch(apiBase + '/api/portal-public/' + clientId)
+    fetch(apiBase + '/api/portal-config/' + clientId)
       .then(r => r.ok ? r.json() : null)
       .then(api => {
         if (api) {

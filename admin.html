@@ -2096,8 +2096,16 @@
 
         async loadPortalClients() {
           try {
-            const res = await fetch('/api/portal-admin-clients', { headers: this.authH() });
-            if (res.ok) this.portalClients = await res.json();
+            const res = await fetch('/api/admin-clients', { headers: this.authH() });
+            if (res.ok) {
+              const clients = await res.json();
+              this.portalClients = clients.map(c => ({
+                id: c.id,
+                name: c.name,
+                status: c.portalConfig?.status || 'off',
+                portalConfig: c.portalConfig || {},
+              }));
+            }
           } catch {}
         },
 
@@ -2126,7 +2134,7 @@
           this.portalSaved = false;
           this.portalError = '';
           try {
-            const res = await fetch('/api/portal-admin-clients/' + this.portalClient.id, {
+            const res = await fetch('/api/portal-config/' + this.portalClient.id, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', ...this.authH() },
               body: JSON.stringify(this.portalDraft),

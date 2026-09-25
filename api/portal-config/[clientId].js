@@ -12,28 +12,28 @@ module.exports = async function handler(req, res) {
   const filePath = path.join(clientsDir, `${clientId}.json`);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Client not found' });
 
-  // GET — public, returns portal config if active
+  // GET — public, returns portalConfig directly (used by portal.js)
   if (req.method === 'GET') {
     try {
       const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       const portalConfig = client.portalConfig || null;
-      if (!portalConfig || !portalConfig.active) {
+      if (!portalConfig || portalConfig.status === 'off') {
         return res.status(404).json({ error: 'Portal not active' });
       }
-      return res.json({ id: client.id, name: client.name, portalConfig });
+      return res.json(portalConfig);
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
   }
 
-  // POST — admin only, saves portal config
-  if (req.method === 'POST') {
+  // POST / PUT — admin only, saves full portalConfig
+  if (req.method === 'POST' || req.method === 'PUT') {
     if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
     try {
       const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       client.portalConfig = req.body;
       fs.writeFileSync(filePath, JSON.stringify(client, null, 2), 'utf8');
-      return res.json({ ok: true });
+      return res.json({ ok: true, client_id: clientId });
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
