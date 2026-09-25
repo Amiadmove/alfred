@@ -2326,7 +2326,11 @@
               headers: { 'Content-Type': 'application/json', ...this.authH() },
               body: JSON.stringify(this.portalDraft),
             });
-            if (!res.ok) throw new Error('Save failed');
+            if (!res.ok) {
+              let msg = `HTTP ${res.status}`;
+              try { const j = await res.json(); msg += ': ' + (j.error || JSON.stringify(j)); } catch {}
+              throw new Error(msg);
+            }
             const idx = this.portalClients.findIndex(c => c.id === this.portalClient.id);
             if (idx !== -1) {
               this.portalClients[idx].portalConfig = JSON.parse(JSON.stringify(this.portalDraft));
@@ -2336,7 +2340,7 @@
             this.portalSaved = true;
             setTimeout(() => this.portalSaved = false, 3000);
           } catch (e) {
-            this.portalError = 'Failed to save. Please try again.';
+            this.portalError = e.message || 'Failed to save.';
           } finally {
             this.portalSaving = false;
           }
