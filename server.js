@@ -521,6 +521,31 @@ app.post('/portal-config/:clientId', (req, res) => {
   }
 });
 
+// ─── GET /portal ───────────────────────────────────────────────────────────────
+// Serves portal.html with client config pre-injected (SSR fallback so portal
+// renders even if the async API fetch fails).
+app.get('/portal', (req, res) => {
+  const clientId = req.query.client;
+  const portalHtml = path.join(__dirname, 'portal.html');
+  if (!clientId || !/^[a-z0-9_-]+$/i.test(clientId)) {
+    return res.sendFile(portalHtml);
+  }
+  const filePath = path.join(CLIENTS_DIR, `${clientId}.json`);
+  if (!fs.existsSync(filePath)) {
+    return res.sendFile(portalHtml);
+  }
+  try {
+    const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const cfg = client.portalConfig || {};
+    let html = fs.readFileSync(portalHtml, 'utf8');
+    const inject = `<script>window._portalServerCfg=${JSON.stringify(cfg)};</script>`;
+    html = html.replace('</head>', inject + '\n</head>');
+    res.type('html').send(html);
+  } catch (err) {
+    res.sendFile(portalHtml);
+  }
+});
+
 // ─── GET /api/portal-public/:clientId ─────────────────────────────────────────
 // Public endpoint used by portal.html (portal.js) — returns portalConfig directly
 app.get('/api/portal-public/:clientId', (req, res) => {

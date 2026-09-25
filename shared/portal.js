@@ -15,6 +15,12 @@
 
     if (!clientId) { console.error('No client ID in URL or PORTAL_CONFIG'); return; }
 
+    // If server pre-loaded the config (SSR), use it directly — fast & reliable
+    if (window._portalServerCfg) {
+      _runPortal(_buildCfgFromApi(clientId, window._portalServerCfg));
+      return;
+    }
+
     const apiBase = window.BACKEND_URL_OVERRIDE || '';
     fetch(apiBase + '/api/portal-public/' + clientId)
       .then(r => r.ok ? r.json() : null)
