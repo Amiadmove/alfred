@@ -26,87 +26,90 @@
   ],
   "notes": "Critical open points: (1) FX clause missing — propose ECB equivalent to Setur in writing. (2) GBV must be end-customer price (line 8 in Notion), not our invoice to Setur — need agent selling price from Setur per booking or revenue share is systematically understated. (3) Confirm markup chain mechanic (price differential vs commission invoice) with Setur.",
   "portalConfig": {
-    "active": true,
+    "status": "live",
     "welcomeTitle": "Welcome, Setur Team!",
     "welcomeMessage": "This is your dedicated onboarding portal from Move. Here you'll find training videos, test scenarios, UI translation tools, and everything you need to get up and running with the holidayheroes PRO platform.",
+    "branding": {
+      "name": "Setur",
+      "fullName": "Setur Turizm",
+      "accentColor": "#0b8f82",
+      "defaultLang": "en"
+    },
     "videos": [
-      { "id": "v1", "title": "Creating an Account and Setting Up Your Store", "loomId": "c7ffa3e8faf24994ad9fe1ecbb796ad6", "description": "Learn how to create your organization, set up your first store, and configure your basic settings." },
-      { "id": "v2", "title": "Store Settings — Admin", "loomId": "d52eb9dfc976446785146f2a054c55d3", "description": "A walkthrough of all admin-level store settings including branding, language, and market configuration." },
-      { "id": "v3", "title": "Invite Agents", "loomId": "fa864cedd09f4052aa7f39db195756e8", "description": "How to invite travel agents to your organization and manage their access levels." },
-      { "id": "v4", "title": "How to Work on Workspace", "loomId": "5353b180e01e47aea168d8dd7834516d", "description": "An introduction to the workspace — your main working area for building and sharing offers." },
-      { "id": "v5", "title": "Workspace Search and Booking Basics", "loomId": "2905178adaeb4f7f9539af4d2edf82fc", "description": "How to search for holidays, compare results, and add offers to your workspace lists." },
-      { "id": "v6", "title": "How to Search with AI Trip Finder", "loomId": "21de18608e72432a8396b4fdbfda5df8", "description": "Use the AI Trip Finder to let customers describe their ideal trip and get personalized results." },
-      { "id": "v7", "title": "How to Book More Than One Room", "loomId": "e9af07ede98e4b9caa82a3dd28873d67", "description": "Step-by-step guide to adding multiple rooms or packages within a single booking." },
-      { "id": "v8", "title": "Booking and Listing Hotel Stays", "loomId": "c7d13f9621434b728997b615a7fe60a9", "description": "How to search, customize, and list hotel-only stays on the holidayheroes PRO platform." }
+      { "id": "v1", "title": "Creating an Account and Setting Up Your Store", "src": "https://www.loom.com/embed/c7ffa3e8faf24994ad9fe1ecbb796ad6", "uploadedFile": "", "description": "Learn how to create your organization, set up your first store, and configure your basic settings." },
+      { "id": "v2", "title": "Store Settings — Admin", "src": "https://www.loom.com/embed/d52eb9dfc976446785146f2a054c55d3", "uploadedFile": "", "description": "A walkthrough of all admin-level store settings including branding, language, and market configuration." },
+      { "id": "v3", "title": "Invite Agents", "src": "https://www.loom.com/embed/fa864cedd09f4052aa7f39db195756e8", "uploadedFile": "", "description": "How to invite travel agents to your organization and manage their access levels." },
+      { "id": "v4", "title": "How to Work on Workspace", "src": "https://www.loom.com/embed/5353b180e01e47aea168d8dd7834516d", "uploadedFile": "", "description": "An introduction to the workspace — your main working area for building and sharing offers." },
+      { "id": "v5", "title": "Workspace Search and Booking Basics", "src": "https://www.loom.com/embed/2905178adaeb4f7f9539af4d2edf82fc", "uploadedFile": "", "description": "How to search for holidays, compare results, and add offers to your workspace lists." },
+      { "id": "v6", "title": "How to Search with AI Trip Finder", "src": "https://www.loom.com/embed/21de18608e72432a8396b4fdbfda5df8", "uploadedFile": "", "description": "Use the AI Trip Finder to let customers describe their ideal trip and get personalized results." },
+      { "id": "v7", "title": "How to Book More Than One Room", "src": "https://www.loom.com/embed/e9af07ede98e4b9caa82a3dd28873d67", "uploadedFile": "", "description": "Step-by-step guide to adding multiple rooms or packages within a single booking." },
+      { "id": "v8", "title": "Booking and Listing Hotel Stays", "src": "https://www.loom.com/embed/c7d13f9621434b728997b615a7fe60a9", "uploadedFile": "", "description": "How to search, customize, and list hotel-only stays on the holidayheroes PRO platform." }
     ],
     "scenarios": [
       {
-        "group": "Agency Setup & Agents",
+        "group": { "en": "Agency Setup & Agents", "tr": "Acenta Kurulumu ve Acentalar" },
         "items": [
-          "Create a new store / organization",
-          "Upload logo via Brand Settings",
-          "Update profile picture and agency info",
-          "Create two additional stores under the same organization",
-          "Set commission, store language, and market per store",
-          "Invite a new agent and verify they can log in successfully",
-          "Log in and create an account as an agent using the invitation link received from admin",
-          "Set agent to inactive — verify the agent cannot log in"
+          { "en": "Create a new store / organization", "tr": "Yeni bir mağaza / organizasyon oluşturun" },
+          { "en": "Upload logo via Brand Settings", "tr": "Marka Ayarları üzerinden logo yükleyin" },
+          { "en": "Update profile picture and agency info", "tr": "Profil fotoğrafını ve acenta bilgilerini güncelleyin" },
+          { "en": "Create two additional stores under the same organization", "tr": "Aynı organizasyon altında iki ek mağaza oluşturun" },
+          { "en": "Set commission, store language, and market per store", "tr": "Her mağaza için komisyon, mağaza dili ve pazar ayarlayın" },
+          { "en": "Invite a new agent and verify they can log in successfully", "tr": "Yeni bir acenta davet edin ve başarıyla giriş yapabildiğini doğrulayın" },
+          { "en": "Log in and create an account as an agent using the invitation link received from admin", "tr": "Adminden alınan davet bağlantısını kullanarak acenta olarak giriş yapın ve hesap oluşturun" },
+          { "en": "Set agent to inactive — verify the agent cannot log in", "tr": "Acentayı pasif olarak ayarlayın — acentanın giriş yapamadığını doğrulayın" }
         ]
       },
       {
-        "group": "Pages, Lists & Profile",
+        "group": { "en": "Pages, Lists & Profile", "tr": "Sayfalar, Listeler ve Profil" },
         "items": [
-          "Create 2–3 lists with different topics",
-          "Build and customize a personal profile page",
-          "Share a list via WhatsApp or copy link",
-          "Share your full profile page and continue as a client view"
+          { "en": "Create 2–3 lists with different topics", "tr": "Farklı konularda 2–3 liste oluşturun" },
+          { "en": "Build and customize a personal profile page", "tr": "Kişisel profil sayfası oluşturun ve özelleştirin" },
+          { "en": "Share a list via WhatsApp or copy link", "tr": "WhatsApp üzerinden veya bağlantı kopyalayarak bir liste paylaşın" },
+          { "en": "Share your full profile page and continue as a client view", "tr": "Tam profil sayfanızı paylaşın ve müşteri görünümü olarak devam edin" }
         ]
       },
       {
-        "group": "Find Your Holiday & Package Customization",
+        "group": { "en": "Find Your Holiday & Package Customization", "tr": "Tatil Bulma ve Paket Özelleştirme" },
         "items": [
-          "Search for a holiday via feed or AI Trip Finder",
-          "Modify package details within the list",
-          "Check the Smart Calendar and decide whether to change dates or nights",
-          "Add luggage and additional services",
-          "Check alternative flights and rooms — switch if needed",
-          "After full customization, click Next to proceed to the checkout page"
+          { "en": "Search for a holiday via feed or AI Trip Finder", "tr": "Feed veya AI Trip Finder aracılığıyla tatil arayın" },
+          { "en": "Modify package details within the list", "tr": "Liste içindeki paket detaylarını düzenleyin" },
+          { "en": "Check the Smart Calendar and decide whether to change dates or nights", "tr": "Akıllı Takvimi kontrol edin ve tarihleri veya geceleri değiştirip değiştirmeyeceğinize karar verin" },
+          { "en": "Add luggage and additional services", "tr": "Bagaj ve ek hizmetler ekleyin" },
+          { "en": "Check alternative flights and rooms — switch if needed", "tr": "Alternatif uçuşları ve odaları kontrol edin — gerekirse değiştirin" },
+          { "en": "After full customization, click Next to proceed to the checkout page", "tr": "Tam özelleştirmeden sonra Sonraki'ye tıklayarak ödeme sayfasına geçin" }
         ]
       },
       {
-        "group": "Mobile Check — Customer View",
+        "group": { "en": "Mobile Check — Customer View", "tr": "Mobil Kontrol — Müşteri Görünümü" },
         "items": [
-          "Open the list link as a client",
-          "Select one of the offers",
-          "Customize the package and add services",
-          "Proceed to checkout and complete the flow up to the payment step"
+          { "en": "Open the list link as a client", "tr": "Müşteri olarak liste bağlantısını açın" },
+          { "en": "Select one of the offers", "tr": "Tekliflerden birini seçin" },
+          { "en": "Customize the package and add services", "tr": "Paketi özelleştirin ve hizmetler ekleyin" },
+          { "en": "Proceed to checkout and complete the flow up to the payment step", "tr": "Ödemeye geçin ve ödeme adımına kadar akışı tamamlayın" }
         ]
       },
       {
-        "group": "Mobile Check — Agent",
+        "group": { "en": "Mobile Check — Agent", "tr": "Mobil Kontrol — Acenta" },
         "items": [
-          "Log in to the site on mobile",
-          "Navigate and work within your workspace",
-          "Check your lists and public profile link — share both",
-          "Select one of the offers and go through the booking flow",
-          "Customize the package and add services",
-          "Proceed to checkout and complete the full flow up to the payment step"
+          { "en": "Log in to the site on mobile", "tr": "Mobilde siteye giriş yapın" },
+          { "en": "Navigate and work within your workspace", "tr": "Çalışma alanınızda gezinin ve çalışın" },
+          { "en": "Check your lists and public profile link — share both", "tr": "Listelerinizi ve herkese açık profil bağlantınızı kontrol edin — her ikisini de paylaşın" },
+          { "en": "Select one of the offers and go through the booking flow", "tr": "Tekliflerden birini seçin ve rezervasyon akışından geçin" },
+          { "en": "Customize the package and add services", "tr": "Paketi özelleştirin ve hizmetler ekleyin" },
+          { "en": "Proceed to checkout and complete the full flow up to the payment step", "tr": "Ödemeye geçin ve ödeme adımına kadar tam akışı tamamlayın" }
         ]
       }
     ],
+    "meetings": [],
+    "bugsLink": "https://www.notion.so/wearemove/d66d058147fa823ba4318139b0222d5f?v=42ed058147fa8229826888a39c9993cf&source=copy_link",
+    "contactLink": "https://holidayheroesss.zendesk.com/hc/tr-tr/requests/new?ticket_form_id=7923304898705",
     "translationLinks": [
-      { "id": "t1", "title": "Landing Page", "description": "Customer-facing landing page — hero text, CTA buttons, feature descriptions.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=landing" },
-      { "id": "t2", "title": "Offer Page", "description": "The offer detail page shown to customers when they view a package.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=offer" },
-      { "id": "t3", "title": "Checkout", "description": "Passenger details, services selection, and payment screens.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?solo=checkout" },
-      { "id": "t4", "title": "Workspace", "description": "The agent workspace — search results, list management, and workspace controls.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=workspace" },
-      { "id": "t5", "title": "Store Management", "description": "Admin panels for managing stores, agents, and settings.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=workspace_storemange" },
-      { "id": "t6", "title": "Confirmation Email", "description": "The booking confirmation email sent to customers after a successful booking.", "url": "https://image.content.travelyo-cdn.site/custom/holidayheroes/setur/setur-onboarding/clients/setur/translation-editor.html?page=cnf_email" }
-    ],
-    "feedbackEmail": "feedback@wearemove.io",
-    "externalLinks": [
-      { "id": "bugs", "title": "Bugs & Requests", "icon": "bug", "url": "https://www.notion.so/wearemove/d66d058147fa823ba4318139b0222d5f?v=42ed058147fa8229826888a39c9993cf&source=copy_link", "description": "Report bugs or request new features via our Notion board." },
-      { "id": "contact", "title": "Contact Us", "icon": "mail", "url": "https://holidayheroesss.zendesk.com/hc/tr-tr/requests/new?ticket_form_id=7923304898705", "description": "Open a support ticket with our team." }
-    ],
-    "links": []
+      { "id": "t1", "title": "Landing Page", "description": "Customer-facing landing page — hero text, CTA buttons, feature descriptions.", "url": "/clients/setur/translation-editor.html?page=landing" },
+      { "id": "t2", "title": "Offer Page", "description": "The offer detail page shown to customers when they view a package.", "url": "/clients/setur/translation-editor.html?page=offer" },
+      { "id": "t3", "title": "Checkout", "description": "Passenger details, services selection, and payment screens.", "url": "/clients/setur/translation-editor.html?solo=checkout" },
+      { "id": "t4", "title": "Workspace", "description": "The agent workspace — search results, list management, and workspace controls.", "url": "/clients/setur/translation-editor.html?page=workspace" },
+      { "id": "t5", "title": "Store Management", "description": "Admin panels for managing stores, agents, and settings.", "url": "/clients/setur/translation-editor.html?page=workspace_storemange" },
+      { "id": "t6", "title": "Confirmation Email", "description": "The booking confirmation email sent to customers after a successful booking.", "url": "/clients/setur/translation-editor.html?page=cnf_email" }
+    ]
   }
 }

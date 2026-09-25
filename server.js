@@ -521,4 +521,56 @@ app.post('/portal-config/:clientId', (req, res) => {
   }
 });
 
+// ─── GET /api/portal-public/:clientId ─────────────────────────────────────────
+// Public endpoint used by portal.html (portal.js) — returns portalConfig directly
+app.get('/api/portal-public/:clientId', (req, res) => {
+  const id = req.params.clientId;
+  if (!/^[a-z0-9_-]+$/i.test(id)) return res.status(400).json({ error: 'Invalid client id' });
+  const filePath = path.join(CLIENTS_DIR, `${id}.json`);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Client not found' });
+  try {
+    const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const cfg = client.portalConfig || {};
+    if (cfg.status === 'off' && !cfg.status) return res.status(404).json({ error: 'Portal not active' });
+    res.json(cfg);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/portal-admin-clients ─────────────────────────────────────────────
+// Returns all clients with their portalConfig (for the admin portals editor)
+app.get('/api/portal-admin-clients', (req, res) => {
+  if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const files = fs.readdirSync(CLIENTS_DIR).filter(f => f.endsWith('.json'));
+    const clients = files.map(f => {
+      const c = JSON.parse(fs.readFileSync(path.join(CLIENTS_DIR, f), 'utf8'));
+      return { id: c.id, name: c.name, status: c.portalConfig?.status || 'off', portalConfig: c.portalConfig || {} };
+    });
+    res.json(clients);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── PUT /api/portal-admin-clients/:clientId ───────────────────────────────────
+// Save rich portalConfig from admin editor
+app.put('/api/portal-admin-clients/:clientId', (req, res) => {
+  if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+  const id = req.params.clientId;
+  if (!/^[a-z0-9_-]+$/i.test(id)) return res.status(400).json({ error: 'Invalid client id' });
+  const filePath = path.join(CLIENTS_DIR, `${id}.json`);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Client not found' });
+  try {
+    const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    client.portalConfig = req.body;
+    fs.writeFileSync(filePath, JSON.stringify(client, null, 2), 'utf8');
+    res.json({ ok: true, client_id: id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => console.log(`Move Onboarding server running on port ${PORT}`));

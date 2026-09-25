@@ -1,673 +1,572 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Partner Portal — Move</title>
-  <link rel="icon" type="image/svg+xml" href="move.svg" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-client-name="">Onboarding Portal</title>
+  <meta name="description" content="holidayheroes Onboarding Portal">
+  <link rel="stylesheet" href="/shared/portal.css?v=5">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F9FC; min-height: 100vh; }
+    /* ── Page-level overrides ── */
+    .portal-main { overflow-y: auto; }
+    .page-content { padding-bottom: 80px; }
 
-    /* ── Sidebar ── */
-    .portal-layout { display: flex; min-height: 100vh; }
-    .portal-sidebar {
-      width: 260px; flex-shrink: 0;
-      background: #152656;
-      display: flex; flex-direction: column;
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
-    }
-    .sidebar-brand { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
-    .sidebar-logo { height: 28px; width: auto; filter: brightness(0) invert(1); }
-    .sidebar-client-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.45); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 12px; }
-
-    .nav-list { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 10px;
-      cursor: pointer; transition: background 0.15s;
-      color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500;
-      border: none; background: none; width: 100%; text-align: left;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
-    .nav-item.active { background: rgba(54,137,251,0.25); color: white; }
-    .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-
-    /* ── Main ── */
-    .portal-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    .portal-topbar {
-      background: white; border-bottom: 1px solid #E2E8F0;
-      padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 20;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-    .portal-topbar-title { font-size: 15px; font-weight: 600; color: #152656; }
-    .portal-content { padding: 36px 32px; max-width: 860px; }
-
-    /* ── Page sections ── */
-    .page-section { display: none; }
-    .page-section.active { display: block; }
-
-    /* ── Cards ── */
-    .content-card {
-      background: white; border: 1px solid #E2E8F0; border-radius: 16px;
-      padding: 28px; margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-      transition: box-shadow 0.18s, transform 0.18s;
-    }
-    .content-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .content-card.clickable { cursor: pointer; }
-
-    /* ── Video card ── */
-    .video-thumb {
-      width: 100%; aspect-ratio: 16/9;
-      background: #152656; border-radius: 10px; overflow: hidden;
-      margin-bottom: 14px; position: relative;
-    }
-    .video-thumb iframe { width: 100%; height: 100%; border: none; }
-    .video-play-overlay {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: rgba(21,38,86,0.55); border-radius: 10px; cursor: pointer;
-    }
-    .video-play-btn {
-      width: 56px; height: 56px; border-radius: 50%; background: white;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    }
-    .video-play-btn svg { width: 22px; height: 22px; color: #152656; margin-left: 3px; }
-    .video-title { font-size: 15px; font-weight: 700; color: #152656; margin-bottom: 6px; }
-    .video-desc { font-size: 13px; color: #64748B; line-height: 1.6; }
-
-    /* ── Link card ── */
-    .link-card {
-      display: flex; align-items: flex-start; gap: 16px;
-      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
-      padding: 20px 24px; margin-bottom: 12px; text-decoration: none;
-      transition: all 0.18s;
-    }
-    .link-card:hover { border-color: #3689FB; box-shadow: 0 4px 16px rgba(54,137,251,0.1); transform: translateY(-1px); }
-    .link-icon {
-      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-      background: #EBF3FF; display: flex; align-items: center; justify-content: center;
-    }
-    .link-icon svg { width: 18px; height: 18px; color: #3689FB; }
-    .link-title { font-size: 14px; font-weight: 700; color: #152656; margin-bottom: 4px; }
-    .link-desc { font-size: 12px; color: #64748B; line-height: 1.5; }
-    .link-arrow { margin-left: auto; flex-shrink: 0; padding-top: 2px; color: #CBD5E1; }
-
-    /* ── Section header ── */
-    .section-heading { font-size: 22px; font-weight: 700; color: #152656; margin-bottom: 6px; }
-    .section-sub { font-size: 14px; color: #64748B; margin-bottom: 28px; line-height: 1.6; }
-    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #94A3B8; margin-bottom: 14px; }
-
-    /* ── Overview ── */
+    /* Dashboard welcome card */
     .welcome-banner {
-      background: linear-gradient(135deg, #152656 0%, #1e3a7a 100%);
-      border-radius: 20px; padding: 36px 40px; margin-bottom: 28px; color: white;
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      box-shadow: var(--shadow-hover);
     }
-    .welcome-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(54,137,251,0.25); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #93C5FD; margin-bottom: 16px; }
-    .welcome-title { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
-    .welcome-msg { font-size: 14px; color: rgba(255,255,255,0.72); line-height: 1.7; max-width: 520px; }
+    .welcome-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+    .welcome-title   { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-top: 6px; }
+    .welcome-sub     { font-size: 14px; color: rgba(255,255,255,0.45); margin-top: 6px; line-height: 1.5; }
 
-    .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-    .overview-card {
-      background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px;
-      cursor: pointer; transition: all 0.18s; text-align: center;
+    /* Quick-start cards */
+    .quickstart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin-bottom: 32px; }
+    .qs-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px 16px;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+      box-shadow: var(--shadow);
     }
-    .overview-card:hover { border-color: #3689FB; box-shadow: 0 4px 16px rgba(54,137,251,0.1); transform: translateY(-2px); }
-    .overview-card-icon { font-size: 28px; margin-bottom: 10px; }
-    .overview-card-label { font-size: 13px; font-weight: 600; color: #152656; }
-    .overview-card-count { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+    .qs-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+    .qs-icon  { font-size: 24px; margin-bottom: 10px; }
+    .qs-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+    .qs-desc  { font-size: 12px; color: var(--ink-muted); margin-top: 4px; line-height: 1.45; }
 
-    /* ── Video modal ── */
-    .video-modal-backdrop {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75); z-index: 100;
-      align-items: center; justify-content: center; padding: 24px;
-    }
-    .video-modal-backdrop.open { display: flex; }
-    .video-modal {
-      background: #0f172a; border-radius: 16px; width: 100%; max-width: 860px;
-      overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-    }
-    .video-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; }
-    .video-modal-title { font-size: 14px; font-weight: 600; color: white; }
-    .video-modal-close {
-      background: rgba(255,255,255,0.1); border: none; color: white;
-      width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; font-size: 18px;
-    }
-    .video-modal-close:hover { background: rgba(255,255,255,0.2); }
-    .video-modal-frame { width: 100%; aspect-ratio: 16/9; }
-    .video-modal-frame iframe { width: 100%; height: 100%; border: none; }
+    /* Scenarios */
+    .qs-group { border:1px solid var(--border); border-radius:var(--radius); background:white; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.04); transition:border-color .15s; }
+    .qs-group:hover { border-color:var(--accent); }
+    .qs-group-row { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; user-select:none; }
+    .qs-group-emoji { font-size:20px; flex-shrink:0; }
+    .qs-group-info { flex:1; min-width:0; }
+    .qs-group-name { font-size:13px; font-weight:700; color:var(--ink); }
+    .qs-group-sub { font-size:11px; color:var(--ink-muted); margin-top:2px; }
+    .qs-group-start { font-size:12px; color:var(--accent); font-weight:700; flex-shrink:0; }
 
-    /* ── Mobile ── */
-    .hamburger-btn { display: none; }
-    .sidebar-overlay { display: none; }
-    @media (max-width: 768px) {
-      .portal-sidebar { position: fixed; left: -260px; top: 0; z-index: 50; transition: left 0.25s; }
-      .portal-sidebar.mobile-open { left: 0; }
-      .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
-      .sidebar-overlay.mobile-open { opacity: 1; pointer-events: all; }
-      .hamburger-btn { display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; padding: 4px; }
-      .portal-content { padding: 24px 16px; }
-      .portal-topbar { padding: 12px 16px; }
-      .welcome-banner { padding: 24px 22px; }
-      .welcome-title { font-size: 20px; }
+    /* Feedback form */
+    .fb-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:28px 28px 22px; max-width:640px; box-shadow:var(--shadow); }
+    .fb-field { margin-bottom:18px; }
+    .fb-label { font-size:11px; font-weight:700; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:7px; display:block; }
+    .fb-label span { font-weight:400; color:#94a3b8; margin-left:4px; text-transform:none; letter-spacing:0; }
+    .fb-input, .fb-textarea, .fb-select {
+      width:100%; border:1.5px solid var(--border); border-radius:8px;
+      padding:9px 12px; font-size:14px; font-family:inherit;
+      outline:none; transition:border-color 0.15s; background:white; color:var(--ink);
+      box-sizing:border-box;
     }
-
-    /* ── Scenario checklist ── */
-    .scenario-group { margin-bottom: 20px; }
-    .scenario-group-title { font-size: 12px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #94A3B8; margin-bottom: 10px; padding: 0 4px; }
-    .scenario-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 11px 14px; border-radius: 10px; background: white;
-      border: 1px solid #E2E8F0; margin-bottom: 7px; cursor: pointer;
-      transition: all 0.15s; user-select: none;
-    }
-    .scenario-item:hover { border-color: #CBD5E1; }
-    .scenario-item.done { background: #F0FDF4; border-color: #BBF7D0; }
-    .scenario-checkbox {
-      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; margin-top: 1px;
-      border: 2px solid #CBD5E1; display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
-    }
-    .scenario-item.done .scenario-checkbox { background: #22C55E; border-color: #22C55E; }
-    .scenario-item.done .scenario-checkbox::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
-    .scenario-item-text { font-size: 13px; color: #334155; line-height: 1.5; }
-    .scenario-item.done .scenario-item-text { color: #86EFAC; text-decoration: line-through; }
-
-    /* ── Translation cards ── */
-    .translation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
-    .translation-card {
-      background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 22px;
-      text-decoration: none; display: block; transition: all 0.18s;
-    }
-    .translation-card:hover { border-color: #3689FB; box-shadow: 0 4px 16px rgba(54,137,251,0.1); transform: translateY(-2px); }
-    .translation-card-icon { font-size: 24px; margin-bottom: 10px; }
-    .translation-card-title { font-size: 14px; font-weight: 700; color: #152656; margin-bottom: 5px; }
-    .translation-card-desc { font-size: 12px; color: #64748B; line-height: 1.5; }
-
-    /* ── Feedback ── */
-    .feedback-stars { display: flex; gap: 8px; margin-bottom: 20px; }
-    .star-btn { font-size: 28px; background: none; border: none; cursor: pointer; opacity: 0.3; transition: opacity 0.15s, transform 0.1s; }
-    .star-btn.active { opacity: 1; }
-    .star-btn:hover { transform: scale(1.15); opacity: 1; }
-    .feedback-textarea { width: 100%; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; font-size: 14px; resize: vertical; min-height: 100px; font-family: inherit; outline: none; transition: border-color 0.15s; }
-    .feedback-textarea:focus { border-color: #3689FB; }
-
-    /* ── Copy link chip ── */
-    .copy-chip {
-      display: flex; align-items: center; gap: 6px;
-      background: #EBF3FF; color: #3689FB; border: none; cursor: pointer;
-      border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600;
-      transition: all 0.15s;
-    }
-    .copy-chip:hover { background: #DBEAFE; }
-    .copy-chip.copied { background: #D1FAE5; color: #065F46; }
-
-    /* ── Sidebar external link ── */
-    .nav-external { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
-    .nav-external:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
-    .nav-section-divider { margin: 8px 12px; border: none; border-top: 1px solid rgba(255,255,255,0.08); }
-
-    /* ── Not found / loading ── */
-    #loading-state, #error-state { display: flex; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
-    #portal-app { display: none; }
+    .fb-input:focus, .fb-textarea:focus, .fb-select:focus { border-color:var(--accent); }
+    .fb-textarea { resize:vertical; min-height:90px; }
+    .fb-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:600px){ .fb-row { grid-template-columns:1fr; } }
+    .fb-radio-group { display:flex; flex-wrap:wrap; gap:8px; }
+    .fb-radio-opt { display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border:1.5px solid var(--border); border-radius:20px; font-size:13px; color:var(--ink); transition:all 0.15s; user-select:none; }
+    .fb-radio-opt:hover { border-color:var(--accent); background:var(--accent-light); }
+    .fb-radio-opt input { display:none; }
+    .fb-radio-opt.selected { border-color:var(--accent); background:var(--accent-light); color:var(--accent); font-weight:600; }
+    .fb-stars { display:flex; gap:6px; }
+    .fb-star { font-size:24px; cursor:pointer; opacity:0.3; transition:opacity 0.1s; }
+    .fb-star.lit { opacity:1; }
+    .fb-submit { background:var(--accent); color:white; border:none; border-radius:8px; padding:11px 28px; font-size:14px; font-weight:700; cursor:pointer; transition:opacity 0.15s; }
+    .fb-submit:hover { opacity:0.88; }
+    .fb-submit:disabled { opacity:0.5; cursor:not-allowed; }
+    .fb-success { display:none; text-align:center; padding:32px 20px; }
+    .fb-success-icon { font-size:40px; margin-bottom:10px; }
+    .fb-success-title { font-size:17px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+    .fb-success-sub { font-size:13px; color:var(--ink-muted); }
+    .fb-followup { display:none; margin-top:10px; }
   </style>
 </head>
 <body>
 
-<!-- Loading -->
-<div id="loading-state">
-  <svg class="animate-spin" style="width:32px;height:32px;color:#3689FB;" fill="none" viewBox="0 0 24 24">
-    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-  </svg>
-  <p style="color:#94A3B8;font-size:14px;">Loading your portal...</p>
-</div>
+<div class="portal-layout">
 
-<!-- Error -->
-<div id="error-state" style="display:none;">
-  <img src="move.svg" alt="Move" style="height:28px;opacity:0.25;" />
-  <p style="color:#152656;font-size:18px;font-weight:700;" id="error-title">Portal not found</p>
-  <p style="color:#94A3B8;font-size:14px;" id="error-msg">This link may be invalid or inactive. Contact your Move account manager.</p>
-</div>
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <aside class="portal-sidebar">
+    <div class="sidebar-brand">
+      <div style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:5px;" data-client-name="">—</div>
+      <div style="font-size:17px; font-weight:800; color:#fff; letter-spacing:-0.02em; line-height:1.2;" data-en="Onboarding Portal" data-tr="Onboarding Portalı">Onboarding Portal</div>
+    </div>
 
-<!-- Portal App -->
-<div id="portal-app">
-  <div class="portal-layout">
+    <nav class="sidebar-nav">
+      <div class="nav-section-label" data-en="Modules" data-tr="Modüller">Modules</div>
+      <div id="nav-items"></div>
 
-    <!-- Sidebar -->
-    <aside class="portal-sidebar" id="portal-sidebar">
-      <div class="sidebar-brand" onclick="goHome()">
-        <img src="move.svg" alt="Move" class="sidebar-logo" />
-        <div class="sidebar-client-name" id="sidebar-client-name">Partner Portal</div>
+      <div class="nav-section-label" data-en="Contact Us" data-tr="İletişim">Contact Us</div>
+      <a class="nav-item js-bugs-link" href="#" target="_blank">
+        <span class="nav-icon">🐛</span>
+        <span class="nav-label" data-en="Bugs & Requests" data-tr="Hatalar ve İstekler">Bugs & Requests</span>
+      </a>
+      <a class="nav-item js-contact-link" href="#" target="_blank">
+        <span class="nav-icon">🎧</span>
+        <span class="nav-label" data-en="Contact us" data-tr="Bize Ulaşın">Contact us</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <img src="/clients/setur/assets/holidaheroeshub_white.svg" alt="holidayheroes" style="width:90px; height:auto; opacity:0.4; display:block; margin-bottom:4px;" onerror="this.style.display='none'">
+      © 2026
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ══════════════ MAIN ══════════════ -->
+  <div class="portal-main">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="topbar-back-btn" id="topbar-back-btn" onclick="window.goHome && window.goHome()" aria-label="Back to overview">←</button>
+        <button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+        <div style="cursor:pointer;" onclick="window.goHome && window.goHome()">
+          <img src="/clients/setur/assets/holidaheroeshub_white.svg" alt="holidayheroes" style="height:35px; width:auto; display:block; opacity:0.9;" onerror="this.style.display='none'">
+          <div style="font-size:11px; color:rgba(255,255,255,0.45);" data-section-title data-en="Overview" data-tr="Genel Bakış">Overview</div>
+        </div>
       </div>
-      <nav class="nav-list" id="nav-list"></nav>
-    </aside>
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <!-- Main -->
-    <div class="portal-main">
-      <div class="portal-topbar">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#152656" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-          </button>
-          <span class="portal-topbar-title" id="topbar-section-title">Welcome</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="copy-chip" id="copy-link-btn" onclick="copyPortalLink()">
-            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            <span id="copy-link-label">Copy link</span>
-          </button>
-          <img src="move.svg" alt="Move" style="height:20px;opacity:0.4;" />
-        </div>
-      </div>
-
-      <div class="portal-content">
-
-        <!-- Overview section -->
-        <div class="page-section active" id="section-overview">
-          <div class="welcome-banner">
-            <div class="welcome-badge">
-              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-              Partner Portal
-            </div>
-            <div class="welcome-title" id="welcome-title">Welcome!</div>
-            <div class="welcome-msg" id="welcome-msg"></div>
-          </div>
-
-          <!-- Quick nav grid -->
-          <div class="section-label">Quick Access</div>
-          <div class="overview-grid" id="overview-grid"></div>
-        </div>
-
-        <!-- Videos section -->
-        <div class="page-section" id="section-videos">
-          <div class="section-heading">Training Videos</div>
-          <div class="section-sub">Watch these videos to get up and running quickly.</div>
-          <div id="videos-list"></div>
-        </div>
-
-        <!-- Links section -->
-        <div class="page-section" id="section-links">
-          <div class="section-heading">Resources & Links</div>
-          <div class="section-sub">Everything you need in one place.</div>
-          <div id="links-list"></div>
-        </div>
-
-        <!-- Scenarios section -->
-        <div class="page-section" id="section-scenarios">
-          <div class="section-heading">Test Scenarios</div>
-          <div class="section-sub">Work through these scenarios to validate the platform end-to-end. Click each item to mark it as done.</div>
-          <div id="scenarios-list"></div>
-        </div>
-
-        <!-- UI Translation section -->
-        <div class="page-section" id="section-translation">
-          <div class="section-heading">UI Translation</div>
-          <div class="section-sub">Review each platform page and add Turkish translations. Click any page to open the translation editor.</div>
-          <div class="translation-grid" id="translation-list"></div>
-        </div>
-
-        <!-- Feedback section -->
-        <div class="page-section" id="section-feedback">
-          <div class="section-heading">Feedback</div>
-          <div class="section-sub">How is the platform working for you? Your feedback helps us improve.</div>
-          <div class="content-card" style="max-width:560px;">
-            <div id="feedback-form-wrap">
-              <p style="font-size:13px;font-weight:600;color:#152656;margin-bottom:12px;">How would you rate your experience so far?</p>
-              <div class="feedback-stars" id="stars-row"></div>
-              <textarea class="feedback-textarea" id="feedback-text" placeholder="Tell us what's working well, what could be better, or anything else on your mind..."></textarea>
-              <button onclick="submitFeedback()" style="margin-top:14px;background:#152656;color:white;border:none;border-radius:12px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;">Send Feedback</button>
-            </div>
-            <div id="feedback-success" style="display:none;text-align:center;padding:20px 0;">
-              <div style="font-size:32px;margin-bottom:12px;">🙏</div>
-              <p style="font-size:16px;font-weight:700;color:#152656;">Thank you for your feedback!</p>
-              <p style="font-size:13px;color:#64748B;margin-top:6px;">We'll review it and get back to you if needed.</p>
-            </div>
-          </div>
-        </div>
-
+      <div class="lang-toggle">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="tr">TR</button>
       </div>
     </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+
+      <!-- ─────────── OVERVIEW (default) ─────────── -->
+      <div class="page-section active" id="section-overview">
+
+        <div class="welcome-banner">
+          <div>
+            <div class="welcome-eyebrow" data-client-name="">holidayheroes</div>
+            <div class="welcome-title">Welcome 👋</div>
+            <div class="welcome-sub" data-en="Everything you need to get up and running on the platform." data-tr="Platformu kullanmaya başlamak için ihtiyacınız olan her şey.">Everything you need to get up and running on the platform.</div>
+          </div>
+        </div>
+
+        <!-- Quick-start -->
+        <div class="divider-label" data-en="Get started" data-tr="Başlangıç">Get started</div>
+        <div class="quickstart-grid">
+          <div class="qs-card" onclick="gotoSection('videos')">
+            <div class="qs-icon">🎬</div>
+            <div class="qs-title" data-en="Watch training videos" data-tr="Eğitim videolarını izle">Watch training videos</div>
+            <div class="qs-desc" data-en="Step-by-step walkthroughs of every feature." data-tr="Her özelliğin adım adım anlatımı.">Step-by-step walkthroughs of every feature.</div>
+          </div>
+          <div class="qs-card" onclick="gotoSection('scenarios')">
+            <div class="qs-icon">✅</div>
+            <div class="qs-title" data-en="Run test scenarios" data-tr="Test senaryolarını çalıştır">Run test scenarios</div>
+            <div class="qs-desc" data-en="Validate the platform end-to-end." data-tr="Platformu uçtan uca doğrulayın.">Validate the platform end-to-end.</div>
+          </div>
+          <div class="qs-card" onclick="gotoSection('translation')">
+            <div class="qs-icon">📸</div>
+            <div class="qs-title" data-en="Translate UI" data-tr="Arayüzü Çevir">Translate UI</div>
+            <div class="qs-desc" data-en="Open the editor and translate each page." data-tr="Editörü açın ve her sayfayı çevirin.">Open the editor and translate each page.</div>
+          </div>
+          <div class="qs-card" onclick="gotoSection('meetings')">
+            <div class="qs-icon">📅</div>
+            <div class="qs-title" data-en="View meeting recaps" data-tr="Toplantı özetlerini görüntüle">View meeting recaps</div>
+            <div class="qs-desc" data-en="Notes and recordings from every session." data-tr="Her oturumdan notlar ve kayıtlar.">Notes and recordings from every session.</div>
+          </div>
+          <div class="qs-card" onclick="gotoSection('feedback')">
+            <div class="qs-icon">💬</div>
+            <div class="qs-title" data-en="Send feedback" data-tr="Geri bildirim gönder">Send feedback</div>
+            <div class="qs-desc" data-en="Report a bug or share your thoughts." data-tr="Hata bildirin veya düşüncelerinizi paylaşın.">Report a bug or share your thoughts.</div>
+          </div>
+        </div>
+
+        <!-- Contact Us -->
+        <div class="divider-label">Contact Us</div>
+        <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:16px;">🐛</span></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;" data-en="For bugs and requests" data-tr="Hatalar ve istekler için">For bugs and requests</div>
+              <a class="js-bugs-link" href="#" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;font-weight:500;" data-en="Open Notion board →" data-tr="Notion tahtasını aç →">Open Notion board →</a>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:#f0fdf4;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:16px;">🎧</span></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;" data-en="Contact us" data-tr="Bize ulaşın">Contact us</div>
+              <a class="js-contact-link" href="#" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;font-weight:500;" data-en="Open contact page →" data-tr="İletişim sayfasını aç →">Open contact page →</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─────────── TRAINING VIDEOS ─────────── -->
+      <div class="page-section" id="section-videos">
+        <div class="section-header">
+          <div class="section-title" data-en="Training Videos" data-tr="Eğitim Videoları">Training Videos</div>
+          <div class="section-desc" data-en="Watch these videos to get familiar with the platform." data-tr="Platformu tanımak için bu videoları izleyin.">Watch these videos to get familiar with the platform.</div>
+        </div>
+        <div class="divider-label" data-en="All videos" data-tr="Tüm videolar">All videos</div>
+        <div class="video-grid" id="video-grid"></div>
+      </div>
+
+      <!-- ─────────── TEST SCENARIOS ─────────── -->
+      <div class="page-section" id="section-scenarios">
+        <div class="section-header">
+          <div class="section-title" data-en="Test Scenarios" data-tr="Test Senaryoları">Test Scenarios</div>
+          <div class="section-desc" data-en="Go through each test one by one. Progress is saved locally." data-tr="Her testi tek tek geçin. İlerleme yerel olarak kaydedilir.">Go through each test one by one. Progress is saved locally.</div>
+        </div>
+        <!-- Populated by portal.js buildScenarios() from API config -->
+        <div id="scenarios-list"></div>
+        <div id="overall-progress" style="margin-top:16px;font-size:13px;color:var(--ink-muted);"></div>
+        <div style="background:var(--border);border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
+          <div id="progress-fill" style="height:100%;background:var(--accent);width:0;transition:width 0.3s;"></div>
+        </div>
+      </div>
+
+      <!-- ─────────── UI TRANSLATION ─────────── -->
+      <div class="page-section" id="section-translation">
+        <div class="section-header">
+          <div class="section-title" data-en="UI Translation" data-tr="Arayüz Çevirisi">UI Translation</div>
+          <div class="section-desc" data-en="Review each platform page and translate it. Export the CSV to send to the dev team." data-tr="Her platform sayfasını inceleyin ve çevirin. CSV'yi geliştirici ekibine göndermek için dışa aktarın.">Review each platform page and translate it. Export the CSV to send to the dev team.</div>
+        </div>
+
+        <div style="margin-bottom:16px;padding:14px 18px;background:#fef9c3;border-radius:8px;border:1px solid #fde047;font-size:13px;color:#713f12;">
+          <strong data-en="How to edit:" data-tr="Nasıl düzenlenir:">How to edit:</strong>
+          <span data-en=" Open a page → click any highlighted text → type the translation → click Email CSV → send to amiado@wearemove.io" data-tr=" Bir sayfa açın → vurgulanan metne tıklayın → çeviriyi yazın → CSV E-posta'ya tıklayın → amiado@wearemove.io adresine gönderin"> Open a page → click any highlighted text → type the translation → click Email CSV → send to amiado@wearemove.io</span>
+        </div>
+
+        <!-- Translation editor page cards — links injected with ?client=X by inline script -->
+        <div id="translation-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">
+
+          <div class="card" style="padding:0;overflow:hidden;cursor:pointer;" data-page="landing">
+            <div style="background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:20px;">🏠</div>
+              <div style="font-size:13px;font-weight:700;color:#fff;" data-en="Landing Page" data-tr="Giriş Sayfası">Landing Page</div>
+            </div>
+            <div style="padding:14px 20px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px;">holidayFinder.csv</div>
+              <span style="font-size:12px;font-weight:600;color:var(--accent);" data-en="Open editor →" data-tr="Editörü aç →">Open editor →</span>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;cursor:pointer;" data-page="offer">
+            <div style="background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:20px;">🎯</div>
+              <div style="font-size:13px;font-weight:700;color:#fff;" data-en="Offer Page" data-tr="Teklif Sayfası">Offer Page</div>
+            </div>
+            <div style="padding:14px 20px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px;">dynPackage.csv</div>
+              <span style="font-size:12px;font-weight:600;color:var(--accent);" data-en="Open editor →" data-tr="Editörü aç →">Open editor →</span>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;cursor:pointer;" data-solo="checkout">
+            <div style="background:var(--ink);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:20px;">🛒</div>
+                <div style="font-size:13px;font-weight:700;color:#fff;" data-en="Checkout" data-tr="Ödeme">Checkout</div>
+              </div>
+              <div style="background:#f59e0b;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;">4 steps</div>
+            </div>
+            <div style="padding:14px 20px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px;">order-v2.csv</div>
+              <span style="font-size:12px;font-weight:600;color:var(--accent);" data-en="Open editor →" data-tr="Editörü aç →">Open editor →</span>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;cursor:pointer;" data-page="workspace">
+            <div style="background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:20px;">🖥</div>
+              <div style="font-size:13px;font-weight:700;color:#fff;" data-en="Workspace" data-tr="Çalışma Alanı">Workspace</div>
+            </div>
+            <div style="padding:14px 20px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px;">hubAdmin.csv · dynPackage.csv · search_engine.csv</div>
+              <span style="font-size:12px;font-weight:600;color:var(--accent);" data-en="Open editor →" data-tr="Editörü aç →">Open editor →</span>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;cursor:pointer;" data-page="workspace_storemange">
+            <div style="background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:20px;">🏪</div>
+              <div style="font-size:13px;font-weight:700;color:#fff;" data-en="Workspace Store Manager" data-tr="Mağaza Yöneticisi">Workspace Store Manager</div>
+            </div>
+            <div style="padding:14px 20px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px;">hubAdmin.csv · personalArea.csv</div>
+              <span style="font-size:12px;font-weight:600;color:var(--accent);" data-en="Open editor →" data-tr="Editörü aç →">Open editor →</span>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;cursor:pointer;" data-page="cnf_email">
+            <div style="background:var(--ink);padding:16px 20px;display:flex;align-items:center;gap:12px;">
+              <div style="font-size:20px;">📧</div>
+              <div style="font-size:13px;font-weight:700;color:#fff;" data-en="CNF Email" data-tr="CNF E-posta">CNF Email</div>
+            </div>
+            <div style="padding:14px 20px;">
+              <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px;">itinerary.csv</div>
+              <span style="font-size:12px;font-weight:600;color:var(--accent);" data-en="Open editor →" data-tr="Editörü aç →">Open editor →</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─────────── MEETING RECAPS ─────────── -->
+      <div class="page-section" id="section-meetings">
+        <div class="section-header">
+          <div class="section-title" data-en="Meeting Recaps" data-tr="Toplantı Özetleri">Meeting Recaps</div>
+          <div class="section-desc" data-en="All recorded sessions with notes, action items and timestamps." data-tr="Notlar, aksiyon maddeleri ve zaman damgalarıyla tüm kayıtlı oturumlar.">All recorded sessions with notes, action items and timestamps.</div>
+        </div>
+        <div class="divider-label" data-en="All sessions" data-tr="Tüm oturumlar">All sessions</div>
+        <div class="recap-list" id="meetings-list"></div>
+      </div>
+
+      <!-- ─────────── FEEDBACK ─────────── -->
+      <div class="page-section" id="section-feedback">
+        <div class="section-header">
+          <div class="section-title" data-en="Feedback" data-tr="Geri Bildirim">Feedback</div>
+          <div class="section-desc" data-en="Report a bug, suggest a feature, or share your overall experience." data-tr="Hata bildirin, özellik önerin veya genel deneyiminizi paylaşın.">Report a bug, suggest a feature, or share your overall experience.</div>
+        </div>
+
+        <div class="fb-card">
+          <form id="feedback-form" onsubmit="submitFeedback(event)">
+
+            <div class="fb-row">
+              <div class="fb-field">
+                <label class="fb-label" data-en="Name" data-tr="İsim">Name <span data-en="(optional)" data-tr="(isteğe bağlı)">(optional)</span></label>
+                <input class="fb-input" id="fb-name" type="text" placeholder="Your name">
+              </div>
+              <div class="fb-field">
+                <label class="fb-label" data-en="Agency Name" data-tr="Ajans Adı">Agency Name <span data-en="(optional)" data-tr="(isteğe bağlı)">(optional)</span></label>
+                <input class="fb-input" id="fb-agency" type="text" placeholder="Your agency">
+              </div>
+            </div>
+
+            <div class="fb-field">
+              <label class="fb-label" data-en="Category" data-tr="Kategori">Category <span data-en="(required)" data-tr="(gerekli)">(required)</span></label>
+              <div class="fb-radio-group" id="fb-category-group">
+                <label class="fb-radio-opt"><input type="radio" name="fb-category" value="Bug — Something isn't working"> 🐛 Bug</label>
+                <label class="fb-radio-opt"><input type="radio" name="fb-category" value="Feature Request"> 💡 Feature Request</label>
+                <label class="fb-radio-opt"><input type="radio" name="fb-category" value="Question"> ❓ Question</label>
+                <label class="fb-radio-opt"><input type="radio" name="fb-category" value="General Feedback"> 👍 General Feedback</label>
+              </div>
+            </div>
+
+            <div class="fb-field">
+              <label class="fb-label" data-en="Topic" data-tr="Konu">Topic <span data-en="(optional)" data-tr="(isteğe bağlı)">(optional)</span></label>
+              <select class="fb-select" id="fb-topic">
+                <option value="">— Select a topic —</option>
+                <option>Search & Offers</option>
+                <option>Checkout</option>
+                <option>Lists & Profile</option>
+                <option>Agents & Admin</option>
+                <option>Mobile</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="fb-field">
+              <label class="fb-label" data-en="Message" data-tr="Mesaj">Message <span data-en="(required)" data-tr="(gerekli)">(required)</span></label>
+              <textarea class="fb-textarea" id="fb-message" placeholder="Describe the issue or your idea..."></textarea>
+            </div>
+
+            <div class="fb-field">
+              <label class="fb-label" data-en="Overall Satisfaction" data-tr="Genel Memnuniyet">Overall Satisfaction <span data-en="(optional)" data-tr="(isteğe bağlı)">(optional)</span></label>
+              <div class="fb-stars" id="fb-stars">
+                <span class="fb-star" data-val="1">★</span>
+                <span class="fb-star" data-val="2">★</span>
+                <span class="fb-star" data-val="3">★</span>
+                <span class="fb-star" data-val="4">★</span>
+                <span class="fb-star" data-val="5">★</span>
+              </div>
+            </div>
+
+            <div class="fb-field">
+              <label class="fb-label" data-en="Would you like us to follow up?" data-tr="Geri dönmemizi ister misiniz?">Would you like us to follow up? <span data-en="(optional)" data-tr="(isteğe bağlı)">(optional)</span></label>
+              <div class="fb-radio-group">
+                <label class="fb-radio-opt"><input type="radio" name="fb-followup" value="Yes"> Yes</label>
+                <label class="fb-radio-opt"><input type="radio" name="fb-followup" value="No" checked> No</label>
+              </div>
+              <div class="fb-followup" id="fb-followup-email">
+                <div style="margin-top:10px;">
+                  <input class="fb-input" id="fb-email" type="email" placeholder="Your email address">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="fb-submit" id="fb-submit-btn" data-en="Send Feedback →" data-tr="Geri Bildirim Gönder →">Send Feedback →</button>
+          </form>
+
+          <div class="fb-success" id="fb-success">
+            <div class="fb-success-icon">✅</div>
+            <div class="fb-success-title" data-en="Thank you for your feedback!" data-tr="Geri bildiriminiz için teşekkürler!">Thank you for your feedback!</div>
+            <div class="fb-success-sub" data-en="We've received your message and will review it shortly." data-tr="Mesajınızı aldık ve kısa sürede inceleyeceğiz.">We've received your message and will review it shortly.</div>
+            <button onclick="resetFeedbackForm()" style="margin-top:16px;background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);" data-en="Send another →" data-tr="Başka bir tane gönder →">Send another →</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </div><!-- end portal-main -->
+</div><!-- end portal-layout -->
+
+<!-- ══════════════ MEETING MODAL ══════════════ -->
+<div id="meeting-modal" style="display:none;position:fixed;inset:0;z-index:300;flex-direction:column;background:#f7f6f3;">
+  <div style="background:#0f1923;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;">
+    <button onclick="window.closeMeetingModal()" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 0;letter-spacing:0.02em;" data-en="← Back to Portal" data-tr="← Portala Dön">← Back to Portal</button>
   </div>
+  <iframe id="meeting-iframe" src="" style="flex:1;border:none;width:100%;height:100%;"></iframe>
 </div>
 
-<!-- Video Modal -->
-<div class="video-modal-backdrop" id="video-modal" onclick="closeVideoModal(event)">
-  <div class="video-modal" onclick="event.stopPropagation()">
-    <div class="video-modal-header">
-      <span class="video-modal-title" id="modal-video-title"></span>
-      <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+<!-- ══════════════ VIDEO MODAL ══════════════ -->
+<div class="modal-overlay" id="video-modal" onclick="if(event.target===this) closeVideoModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-video-title">Video</div>
+      <button class="modal-close" onclick="closeVideoModal()">✕</button>
     </div>
-    <div class="video-modal-frame">
-      <iframe id="modal-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <div class="modal-video">
+      <iframe id="modal-iframe" src="" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-hint" data-en="⛶ Click the fullscreen icon in the bottom-right to expand" data-tr="⛶ Genişletmek için sağ alt köşedeki tam ekran simgesine tıklayın">⛶ Click the fullscreen icon in the bottom-right to expand</div>
+      <a id="modal-open-link" href="#" target="_blank" class="btn btn-ghost btn-sm" data-en="Open in tldv ↗" data-tr="tldv'de aç ↗">Open in tldv ↗</a>
     </div>
   </div>
 </div>
 
 <script>
-(function () {
-  const params = new URLSearchParams(location.search);
-  const clientId = params.get('client');
+  // ── Feedback form ─────────────────────────────────────────────────────────────
+  const FEEDBACK_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytDl1AomHB2Ozx-fTTffzI-lhecrIBw0JqMnTJOrppavvP-_mI2e3ALC9DomV1Kp3J/exec';
 
-  if (!clientId) return showError('No client specified', 'Add ?client=yourname to the URL.');
-
-  fetch(`/api/portal-config/${encodeURIComponent(clientId)}`)
-    .then(r => r.ok ? r.json() : r.json().then(e => Promise.reject(e.error || 'Not found')))
-    .then(data => initPortal(data))
-    .catch(err => showError('Portal not found', typeof err === 'string' ? err : 'This portal may be inactive or unavailable.'));
-
-  function showError(title, msg) {
-    document.getElementById('loading-state').style.display = 'none';
-    document.getElementById('error-state').style.display = 'flex';
-    document.getElementById('error-title').textContent = title;
-    document.getElementById('error-msg').textContent = msg;
-  }
-
-  function initPortal(data) {
-    const cfg = data.portalConfig;
-    document.title = `${data.name} — Partner Portal`;
-
-    // Sidebar client name
-    document.getElementById('sidebar-client-name').textContent = data.name;
-
-    // Welcome
-    document.getElementById('welcome-title').textContent = cfg.welcomeTitle || `Welcome, ${data.name}!`;
-    document.getElementById('welcome-msg').textContent = cfg.welcomeMessage || '';
-
-    // Build nav + overview grid + sections
-    buildNav(cfg);
-    if (cfg.videos && cfg.videos.length) buildVideos(cfg.videos);
-    if (cfg.scenarios && cfg.scenarios.length) buildScenarios(cfg.scenarios);
-    if (cfg.translationLinks && cfg.translationLinks.length) buildTranslation(cfg.translationLinks);
-    if (cfg.feedbackEmail || cfg.feedbackUrl) buildFeedback(cfg.feedbackEmail || cfg.feedbackUrl);
-    if (cfg.links && cfg.links.length) buildLinks(cfg.links);
-
-    // Mobile
-    initMobile();
-
-    // Show app
-    document.getElementById('loading-state').style.display = 'none';
-    document.getElementById('portal-app').style.display = 'block';
-  }
-
-  // ── Nav & Overview ──────────────────────────────
-  const SECTIONS = [
-    { id: 'videos',      label: 'Training Videos',  icon: '🎬', key: 'videos' },
-    { id: 'scenarios',   label: 'Test Scenarios',    icon: '✅', key: 'scenarios' },
-    { id: 'translation', label: 'UI Translation',    icon: '🌐', key: 'translationLinks' },
-    { id: 'feedback',    label: 'Feedback',          icon: '💬', key: null },
-    { id: 'links',       label: 'Resources & Links', icon: '🔗', key: 'links' },
-  ];
-
-  function buildNav(cfg) {
-    const navList = document.getElementById('nav-list');
-    const overviewGrid = document.getElementById('overview-grid');
-
-    // Overview card always first
-    const homeBtn = document.createElement('button');
-    homeBtn.className = 'nav-item active';
-    homeBtn.dataset.target = 'overview';
-    homeBtn.innerHTML = `<span class="nav-icon">🏠</span> Overview`;
-    homeBtn.addEventListener('click', () => navigateTo('overview', 'Welcome', homeBtn));
-    navList.appendChild(homeBtn);
-
-    SECTIONS.forEach(s => {
-      const items = s.key ? (cfg[s.key] || []) : null;
-      const count = items ? items.length : null;
-      if (s.key && !count) return; // skip empty keyed sections
-      if (!s.key && s.id === 'feedback' && !cfg.feedbackEmail && !cfg.feedbackUrl) return;
-
-      const btn = document.createElement('button');
-      btn.className = 'nav-item';
-      btn.dataset.target = s.id;
-      const badge = count ? `<span style="margin-left:auto;background:rgba(255,255,255,0.12);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;">${count}</span>` : '';
-      btn.innerHTML = `<span class="nav-icon">${s.icon}</span> ${s.label} ${badge}`;
-      btn.addEventListener('click', () => navigateTo(s.id, s.label, btn));
-      navList.appendChild(btn);
-
-      const card = document.createElement('div');
-      card.className = 'overview-card';
-      card.innerHTML = `<div class="overview-card-icon">${s.icon}</div><div class="overview-card-label">${s.label}</div><div class="overview-card-count">${count ? count + ' item' + (count !== 1 ? 's' : '') : 'Send feedback'}</div>`;
-      card.addEventListener('click', () => navigateTo(s.id, s.label, btn));
-      overviewGrid.appendChild(card);
-    });
-
-    // External links (Bugs, Contact) at bottom of sidebar
-    const ext = cfg.externalLinks || [];
-    if (ext.length) {
-      const divider = document.createElement('hr');
-      divider.className = 'nav-section-divider';
-      navList.appendChild(divider);
-      ext.forEach(l => {
-        const a = document.createElement('a');
-        a.className = 'nav-external';
-        a.href = l.url || '#';
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        const iconSvg = l.icon === 'bug'
-          ? `<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
-          : `<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`;
-        a.innerHTML = `${iconSvg} ${l.title} <svg style="margin-left:auto;opacity:0.4" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>`;
-        navList.appendChild(a);
-      });
-    }
-  }
-
-  function navigateTo(sectionId, label, navBtn) {
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    navBtn && navBtn.classList.add('active');
-    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-    const section = document.getElementById('section-' + sectionId);
-    if (section) section.classList.add('active');
-    document.getElementById('topbar-section-title').textContent = label;
-    closeMobileSidebar();
-  }
-
-  window.goHome = function() {
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    const homeBtn = document.querySelector('.nav-item[data-target="overview"]');
-    if (homeBtn) homeBtn.classList.add('active');
-    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-    document.getElementById('section-overview').classList.add('active');
-    document.getElementById('topbar-section-title').textContent = 'Welcome';
-    closeMobileSidebar();
-  };
-
-  // ── Videos ──────────────────────────────────────
-  function getVideoEmbed(v) {
-    if (v.loomId) {
-      return {
-        embedUrl: `https://www.loom.com/embed/${v.loomId}?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true`,
-        thumbUrl: `https://cdn.loom.com/sessions/thumbnails/${v.loomId}-with-play.gif`,
-      };
-    }
-    if (v.youtubeUrl) {
-      const m = v.youtubeUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-      const ytId = m ? m[1] : v.youtubeUrl.length === 11 ? v.youtubeUrl : null;
-      if (ytId) return { embedUrl: `https://www.youtube.com/embed/${ytId}?autoplay=1`, thumbUrl: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` };
-    }
-    return { embedUrl: null, thumbUrl: null };
-  }
-
-  function buildVideos(videos) {
-    const list = document.getElementById('videos-list');
-    videos.forEach(v => {
-      const { embedUrl, thumbUrl } = getVideoEmbed(v);
-      const card = document.createElement('div');
-      card.className = 'content-card' + (embedUrl ? ' clickable' : '');
-      card.innerHTML = `
-        ${thumbUrl ? `
-        <div class="video-thumb" style="background-image:url('${thumbUrl}');background-size:cover;background-position:center;">
-          ${embedUrl ? `<div class="video-play-overlay">
-            <div class="video-play-btn">
-              <svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            </div>
-          </div>` : ''}
-        </div>` : ''}
-        <div class="video-title">${v.title || 'Untitled'}</div>
-        ${v.description ? `<div class="video-desc">${v.description}</div>` : ''}
-      `;
-      if (embedUrl) card.addEventListener('click', () => openVideoModal(v.title, embedUrl));
-      list.appendChild(card);
-    });
-  }
-
-  // ── Scenarios ────────────────────────────────────
-  function buildScenarios(scenarios) {
-    const container = document.getElementById('scenarios-list');
-    // Load saved state
-    const storageKey = 'portal_scenarios_' + (new URLSearchParams(location.search).get('client') || '');
-    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-
-    scenarios.forEach((group, gi) => {
-      const groupEl = document.createElement('div');
-      groupEl.className = 'scenario-group';
-      groupEl.innerHTML = `<div class="scenario-group-title">${group.group}</div>`;
-      group.items.forEach((item, ii) => {
-        const key = `${gi}-${ii}`;
-        const div = document.createElement('div');
-        div.className = 'scenario-item' + (saved[key] ? ' done' : '');
-        div.innerHTML = `<div class="scenario-checkbox"></div><div class="scenario-item-text">${item}</div>`;
-        div.addEventListener('click', () => {
-          div.classList.toggle('done');
-          saved[key] = div.classList.contains('done');
-          localStorage.setItem(storageKey, JSON.stringify(saved));
+  document.addEventListener('DOMContentLoaded', () => {
+    // Radio pill selection
+    document.querySelectorAll('.fb-radio-group').forEach(group => {
+      group.querySelectorAll('.fb-radio-opt').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const name = opt.querySelector('input').name;
+          group.querySelectorAll('.fb-radio-opt').forEach(o => {
+            if (o.querySelector('input').name === name) o.classList.remove('selected');
+          });
+          opt.classList.add('selected');
+          if (name === 'fb-followup') {
+            const val = opt.querySelector('input').value;
+            document.getElementById('fb-followup-email').style.display = val === 'Yes' ? 'block' : 'none';
+          }
         });
-        groupEl.appendChild(div);
       });
-      container.appendChild(groupEl);
     });
-  }
 
-  // ── Translation ──────────────────────────────────
-  function buildTranslation(links) {
-    const grid = document.getElementById('translation-list');
-    const icons = ['📄', '🎁', '🛒', '🖥️', '⚙️', '📧'];
-    links.forEach((l, i) => {
-      const a = document.createElement('a');
-      a.className = 'translation-card';
-      a.href = l.url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.innerHTML = `
-        <div class="translation-card-icon">${icons[i] || '📄'}</div>
-        <div class="translation-card-title">${l.title}</div>
-        <div class="translation-card-desc">${l.description || ''}</div>
-      `;
-      grid.appendChild(a);
-    });
-  }
-
-  // ── Feedback ─────────────────────────────────────
-  function buildFeedback(email) {
-    let rating = 0;
-    const starsRow = document.getElementById('stars-row');
-    if (starsRow) {
-      ['😞','😐','🙂','😊','🤩'].forEach((emoji, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'star-btn';
-        btn.textContent = emoji;
-        btn.addEventListener('click', () => {
-          rating = i + 1;
-          document.querySelectorAll('.star-btn').forEach((b, j) => b.classList.toggle('active', j <= i));
-        });
-        starsRow.appendChild(btn);
+    // Star rating
+    let selectedRating = 0;
+    document.querySelectorAll('.fb-star').forEach(star => {
+      star.addEventListener('mouseover', () => {
+        const val = parseInt(star.dataset.val);
+        document.querySelectorAll('.fb-star').forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= val));
       });
-    }
-    window.submitFeedback = function() {
-      const text = document.getElementById('feedback-text').value.trim();
-      const subject = encodeURIComponent('Portal Feedback');
-      const body = encodeURIComponent(`Rating: ${'⭐'.repeat(rating) || 'No rating'}\n\n${text}`);
-      window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
-      document.getElementById('feedback-form-wrap').style.display = 'none';
-      document.getElementById('feedback-success').style.display = 'block';
+      star.addEventListener('mouseout', () => {
+        document.querySelectorAll('.fb-star').forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= selectedRating));
+      });
+      star.addEventListener('click', () => {
+        selectedRating = parseInt(star.dataset.val);
+        document.querySelectorAll('.fb-star').forEach(s => s.classList.toggle('lit', parseInt(s.dataset.val) <= selectedRating));
+        star.closest('form').dataset.rating = selectedRating;
+      });
+    });
+
+    // ── Wire up translation editor cards ─────────────────────────────────────
+    // Read ?client from URL so links include the correct client scope
+    const clientId = new URLSearchParams(window.location.search).get('client') || '';
+    const clientParam = clientId ? '&client=' + encodeURIComponent(clientId) : '';
+    const editorBase = '/clients/setur/translation-editor.html';
+
+    document.querySelectorAll('#translation-cards .card[data-page]').forEach(card => {
+      const page = card.dataset.page;
+      card.addEventListener('click', () => {
+        window.open(editorBase + '?page=' + page + clientParam, '_blank');
+      });
+    });
+    document.querySelectorAll('#translation-cards .card[data-solo]').forEach(card => {
+      const solo = card.dataset.solo;
+      card.addEventListener('click', () => {
+        window.open(editorBase + '?solo=' + solo + clientParam, '_blank');
+      });
+    });
+  });
+
+  function submitFeedback(e) {
+    e.preventDefault();
+    const category = document.querySelector('input[name="fb-category"]:checked')?.value || '';
+    const message  = document.getElementById('fb-message').value.trim();
+    if (!category) { alert('Please select a category.'); return; }
+    if (!message)  { alert('Please enter a message.'); return; }
+
+    const clientId = new URLSearchParams(window.location.search).get('client') || '—';
+    const data = {
+      client:   clientId,
+      name:     document.getElementById('fb-name').value.trim() || '—',
+      agency:   document.getElementById('fb-agency').value.trim() || '—',
+      category,
+      topic:    document.getElementById('fb-topic').value || '—',
+      message,
+      rating:   document.getElementById('feedback-form').dataset.rating || '—',
+      followup: document.querySelector('input[name="fb-followup"]:checked')?.value || '—',
+      email:    document.getElementById('fb-email').value.trim() || '—',
+      date:     new Date().toISOString().slice(0,10),
     };
-  }
 
-  // ── Copy portal link ─────────────────────────────
-  window.copyPortalLink = function() {
-    navigator.clipboard.writeText(location.href).then(() => {
-      const btn = document.getElementById('copy-link-btn');
-      const label = document.getElementById('copy-link-label');
-      btn.classList.add('copied');
-      label.textContent = 'Copied!';
-      setTimeout(() => { btn.classList.remove('copied'); label.textContent = 'Copy link'; }, 2500);
-    });
-  };
+    const btn = document.getElementById('fb-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
 
-  function openVideoModal(title, embedUrl) {
-    document.getElementById('modal-video-title').textContent = title || '';
-    document.getElementById('modal-iframe').src = embedUrl;
-    document.getElementById('video-modal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
+    const sendToSheet = FEEDBACK_SCRIPT_URL !== 'YOUR_SCRIPT_URL_HERE'
+      ? fetch(FEEDBACK_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(data) }).catch(()=>{})
+      : Promise.resolve();
 
-  window.closeVideoModal = function(e) {
-    if (e && e.target !== document.getElementById('video-modal')) return;
-    document.getElementById('video-modal').classList.remove('open');
-    document.getElementById('modal-iframe').src = '';
-    document.body.style.overflow = '';
-  };
+    const body = Object.entries(data).map(([k,v])=>`${k}: ${v}`).join('\n');
+    const mailto = `mailto:amiado@wearemove.io?subject=Feedback%20—%20${encodeURIComponent(category)}&body=${encodeURIComponent(body)}`;
 
-  // close modal with X button (no event param)
-  const originalClose = window.closeVideoModal;
-  window.closeVideoModal = function(e) {
-    if (e && e instanceof MouseEvent && e.target !== document.getElementById('video-modal')) return;
-    document.getElementById('video-modal').classList.remove('open');
-    document.getElementById('modal-iframe').src = '';
-    document.body.style.overflow = '';
-  };
-
-  // ── Links ────────────────────────────────────────
-  function buildLinks(links) {
-    const list = document.getElementById('links-list');
-    links.forEach(l => {
+    sendToSheet.then(() => {
       const a = document.createElement('a');
-      a.className = 'link-card';
-      a.href = l.url || '#';
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.innerHTML = `
-        <div class="link-icon">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-        </div>
-        <div>
-          <div class="link-title">${l.title || 'Link'}</div>
-          ${l.description ? `<div class="link-desc">${l.description}</div>` : ''}
-        </div>
-        <div class="link-arrow">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-        </div>
-      `;
-      list.appendChild(a);
+      a.href = mailto;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      document.getElementById('feedback-form').style.display = 'none';
+      document.getElementById('fb-success').style.display = 'block';
     });
   }
 
-  // ── Mobile ───────────────────────────────────────
-  function initMobile() {
-    const hamburger = document.getElementById('hamburger-btn');
-    const overlay   = document.getElementById('sidebar-overlay');
-    if (hamburger) hamburger.addEventListener('click', () => {
-      document.getElementById('portal-sidebar').classList.toggle('mobile-open');
-      overlay.classList.toggle('mobile-open');
-    });
-    if (overlay) overlay.addEventListener('click', closeMobileSidebar);
+  function resetFeedbackForm() {
+    document.getElementById('feedback-form').reset();
+    document.getElementById('feedback-form').dataset.rating = '';
+    document.querySelectorAll('.fb-radio-opt').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.fb-star').forEach(s => s.classList.remove('lit'));
+    document.getElementById('fb-followup-email').style.display = 'none';
+    document.getElementById('fb-submit-btn').disabled = false;
+    document.getElementById('fb-submit-btn').textContent = 'Send Feedback →';
+    document.getElementById('feedback-form').style.display = 'block';
+    document.getElementById('fb-success').style.display = 'none';
   }
 
-  function closeMobileSidebar() {
-    document.getElementById('portal-sidebar')?.classList.remove('mobile-open');
-    document.getElementById('sidebar-overlay')?.classList.remove('mobile-open');
+  function gotoSection(id) {
+    const btn = document.querySelector(`.nav-item[data-target="${id}"]`);
+    if (btn) btn.click();
   }
-
-})();
 </script>
+
+<!-- local-dev: sets BACKEND_URL_OVERRIDE to localhost:8000 when developing locally -->
+<script src="/local-dev.js" onerror="void 0"></script>
+<!-- portal.js reads ?client=X from URL, fetches API, then runs the portal -->
+<script src="/shared/portal.js?v=11"></script>
 
 </body>
 </html>
