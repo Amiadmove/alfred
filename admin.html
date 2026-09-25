@@ -1379,11 +1379,15 @@
       </div>
     </div>
 
-    <!-- ── Main editor area ── -->
-    <div class="flex-1 overflow-y-auto" style="background:#F7F9FC">
+    <!-- ── Main editor area + optional side preview ── -->
+    <div class="flex-1 flex overflow-hidden">
+
+    <!-- editor column -->
+    <div class="overflow-y-auto transition-all duration-300" style="background:#F7F9FC"
+      :class="portalSidePreview ? 'w-1/2' : 'flex-1'">
 
       <!-- Selected client editor -->
-      <div x-show="portalClient" class="max-w-4xl mx-auto px-6 py-6 space-y-4">
+      <div x-show="portalClient" class="max-w-3xl mx-auto px-6 py-6 space-y-4">
 
         <!-- Header card -->
         <div class="bg-white rounded-2xl border border-slate-200 px-6 py-5">
@@ -1409,6 +1413,11 @@
                   :class="portalDraft.status === 'live' ? 'text-green-600' : 'text-slate-400'"
                   x-text="portalDraft.status === 'live' ? 'Live' : 'Off'"></span>
               </label>
+              <button @click="portalSidePreview = !portalSidePreview"
+                class="px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors"
+                :class="portalSidePreview ? 'border-blue-300 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'">
+                ◧ Side preview
+              </button>
               <a :href="'/portal?client=' + (portalClient?.id || '')" target="_blank"
                 class="px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors">
                 Preview ↗
@@ -1651,8 +1660,34 @@
         <p class="text-sm text-slate-400">← Select a client to manage their portal</p>
       </div>
 
+    </div><!-- /editor column -->
+
+    <!-- ── Side preview iframe ── -->
+    <div x-show="portalSidePreview && portalClient"
+      class="w-1/2 border-l border-slate-200 flex flex-col bg-white transition-all duration-300">
+      <!-- Preview toolbar -->
+      <div class="flex items-center justify-between px-4 py-2 border-b border-slate-100 bg-slate-50 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-500">Preview</span>
+          <span class="text-[10px] text-slate-400">— save to refresh</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button @click="portalPreviewKey++" class="text-xs text-slate-400 hover:text-slate-700 transition-colors">↺ Refresh</button>
+          <a :href="'/portal?client=' + (portalClient?.id || '')" target="_blank"
+            class="text-xs text-slate-400 hover:text-slate-700 transition-colors">↗ Open</a>
+          <button @click="portalSidePreview = false" class="text-slate-300 hover:text-slate-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- iframe -->
+      <iframe class="flex-1 w-full border-0"
+        :src="'/portal?client=' + (portalClient?.id || '') + '&_t=' + portalPreviewKey"
+        x-show="portalSidePreview && portalClient"></iframe>
     </div>
-  </div>
+
+    </div><!-- /flex wrapper -->
+  </div><!-- /portals view -->
 
   </div><!-- end authed -->
 
@@ -1725,6 +1760,8 @@
         portalSaved: false,
         portalError: '',
         portalLinkCopied: false,
+        portalSidePreview: false,
+        portalPreviewKey: 1,
 
         SECTIONS: {
           holidayheroes: [
@@ -2175,6 +2212,7 @@
               this.portalClients[idx].portalConfig = JSON.parse(JSON.stringify(this.portalDraft));
               this.portalClients[idx].status = this.portalDraft.status;
             }
+            this.portalPreviewKey++;
             this.portalSaved = true;
             setTimeout(() => this.portalSaved = false, 3000);
           } catch (e) {
