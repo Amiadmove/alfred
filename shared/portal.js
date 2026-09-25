@@ -48,8 +48,10 @@
         fullName:    branding.fullName    || '',
         accentColor: branding.accentColor || '#0b8f82',
         defaultLang: branding.defaultLang || 'en',
+        logoUrl:     branding.logoUrl     || '',
+        langMode:    branding.langMode    || 'toggle',
       },
-      languages:      ['en', 'tr'],
+      languages: branding.languages && branding.languages.length ? branding.languages : ['en'],
       welcomeTitle:   api.welcomeTitle   || '',
       welcomeMessage: api.welcomeMessage || '',
       emailTemplates: [],
@@ -70,7 +72,12 @@
         fullName:    api.branding.fullName    || base.client.fullName,
         accentColor: api.branding.accentColor || base.client.accentColor,
         defaultLang: api.branding.defaultLang || base.client.defaultLang,
+        logoUrl:     api.branding.logoUrl     || base.client.logoUrl || '',
+        langMode:    api.branding.langMode    || base.client.langMode || 'toggle',
       });
+      if (api.branding.languages && api.branding.languages.length) {
+        out.languages = api.branding.languages;
+      }
     }
     // Welcome text
     if (api.welcomeTitle)   out.welcomeTitle   = api.welcomeTitle;
@@ -139,6 +146,13 @@
     // Welcome banner (API-driven)
     if (cfg.welcomeTitle)   setText('.welcome-title', cfg.welcomeTitle);
     if (cfg.welcomeMessage) setText('.welcome-sub',   cfg.welcomeMessage);
+    // Logo
+    if (cfg.client.logoUrl) {
+      document.querySelectorAll('[data-client-logo]').forEach(el => {
+        el.src = cfg.client.logoUrl;
+        el.style.display = 'block';
+      });
+    }
   }
 
   function hexToLight(hex) {
@@ -651,14 +665,24 @@
 
   function initLang(cfg) {
     const defaultLang = cfg.client.defaultLang || 'en';
-    setLang(defaultLang);
+    const languages   = cfg.languages || ['en'];
+    const langMode    = cfg.client.langMode || 'toggle';
 
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const lang = btn.dataset.lang;
-        if (lang) setLang(lang);
+    // Build lang toggle buttons dynamically
+    const container = document.getElementById('lang-toggle');
+    if (container && langMode === 'toggle' && languages.length > 1) {
+      container.innerHTML = '';
+      languages.forEach(code => {
+        const btn = document.createElement('button');
+        btn.className = 'lang-btn';
+        btn.dataset.lang = code;
+        btn.textContent = code.toUpperCase();
+        btn.addEventListener('click', () => setLang(code));
+        container.appendChild(btn);
       });
-    });
+    }
+
+    setLang(defaultLang);
   }
 
   window.setLang = function (lang) {

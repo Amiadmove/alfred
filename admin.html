@@ -1630,6 +1630,43 @@
 
             <!-- ── BRANDING ── -->
             <div x-show="portalTab === 'branding'" class="space-y-5">
+
+              <!-- Logo -->
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Logo</label>
+                <div class="flex items-center gap-4">
+                  <!-- Current logo preview -->
+                  <div class="w-24 h-16 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                    <template x-if="portalDraft.branding.logoUrl">
+                      <img :src="portalDraft.branding.logoUrl" class="max-w-full max-h-full object-contain p-2" />
+                    </template>
+                    <template x-if="!portalDraft.branding.logoUrl">
+                      <svg class="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-6 6 8"/></svg>
+                    </template>
+                  </div>
+                  <div class="flex-1 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer px-4 py-2 border border-dashed border-slate-300 rounded-xl text-xs font-medium text-slate-600 hover:border-blue-400 hover:text-blue-500 transition-colors">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                      Upload logo (PNG / SVG)
+                      <input type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp" class="hidden"
+                        @change="
+                          const file = $event.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = e => { portalDraft.branding.logoUrl = e.target.result; };
+                          reader.readAsDataURL(file);
+                        " />
+                    </label>
+                    <button x-show="portalDraft.branding.logoUrl"
+                      @click="portalDraft.branding.logoUrl = ''"
+                      class="text-xs text-red-400 hover:text-red-600 transition-colors">
+                      Remove logo
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Name -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Short Name</label>
@@ -1642,17 +1679,65 @@
                     class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400" />
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Accent Color</label>
-                  <div class="flex items-center gap-3">
-                    <input x-model="portalDraft.branding.accentColor" type="color"
-                      class="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5" />
-                    <input x-model="portalDraft.branding.accentColor" type="text" placeholder="#0b8f82"
-                      class="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 font-mono" />
+
+              <!-- Color -->
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Accent Color</label>
+                <div class="flex items-center gap-3">
+                  <input x-model="portalDraft.branding.accentColor" type="color"
+                    class="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5" />
+                  <input x-model="portalDraft.branding.accentColor" type="text" placeholder="#0b8f82"
+                    class="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 font-mono" />
+                </div>
+              </div>
+
+              <!-- Languages -->
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Portal Languages</label>
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <template x-for="lang in [{code:'en',label:'English'},{code:'tr',label:'Turkish'},{code:'de',label:'German'},{code:'fr',label:'French'},{code:'es',label:'Spanish'},{code:'he',label:'Hebrew'}]" :key="lang.code">
+                    <label class="flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-colors text-sm"
+                      :class="(portalDraft.branding.languages||[]).includes(lang.code)
+                        ? 'border-blue-400 bg-blue-50 text-blue-700 font-medium'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'">
+                      <input type="checkbox"
+                        :checked="(portalDraft.branding.languages||[]).includes(lang.code)"
+                        @change="
+                          const langs = [...(portalDraft.branding.languages||[])];
+                          if ($event.target.checked) { if (!langs.includes(lang.code)) langs.push(lang.code); }
+                          else { const i = langs.indexOf(lang.code); if (i > -1) langs.splice(i,1); }
+                          portalDraft.branding.languages = langs;
+                        "
+                        class="hidden" />
+                      <span x-text="lang.code.toUpperCase()"></span>
+                      <span class="text-xs opacity-70" x-text="lang.label"></span>
+                    </label>
+                  </template>
+                </div>
+                <!-- Language mode -->
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Language Mode</label>
+                  <div class="flex gap-3">
+                    <label class="flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-colors flex-1"
+                      :class="(portalDraft.branding.langMode||'toggle')==='toggle' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'">
+                      <input type="radio" name="langMode" value="toggle" x-model="portalDraft.branding.langMode" class="mt-0.5 accent-blue-500" />
+                      <div>
+                        <div class="text-sm font-medium text-slate-700">Toggle buttons</div>
+                        <div class="text-xs text-slate-400 mt-0.5">EN / TR switcher in the portal header</div>
+                      </div>
+                    </label>
+                    <label class="flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-colors flex-1"
+                      :class="(portalDraft.branding.langMode||'toggle')==='links' ? 'border-blue-400 bg-blue-50' : 'border-slate-200 hover:border-slate-300'">
+                      <input type="radio" name="langMode" value="links" x-model="portalDraft.branding.langMode" class="mt-0.5 accent-blue-500" />
+                      <div>
+                        <div class="text-sm font-medium text-slate-700">Separate links</div>
+                        <div class="text-xs text-slate-400 mt-0.5">Each language gets its own URL</div>
+                      </div>
+                    </label>
                   </div>
                 </div>
-                <div>
+                <!-- Default language -->
+                <div class="mt-3">
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Default Language</label>
                   <select x-model="portalDraft.branding.defaultLang"
                     class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
@@ -1660,14 +1745,28 @@
                     <option value="tr">Turkish</option>
                     <option value="de">German</option>
                     <option value="fr">French</option>
+                    <option value="es">Spanish</option>
+                    <option value="he">Hebrew</option>
                   </select>
                 </div>
               </div>
+
+              <!-- Preview card -->
               <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50 flex items-center gap-4">
-                <div class="w-10 h-10 rounded-xl shrink-0" :style="'background:' + (portalDraft.branding.accentColor || '#152656')"></div>
+                <template x-if="portalDraft.branding.logoUrl">
+                  <img :src="portalDraft.branding.logoUrl" class="w-10 h-10 object-contain rounded-xl" />
+                </template>
+                <template x-if="!portalDraft.branding.logoUrl">
+                  <div class="w-10 h-10 rounded-xl shrink-0" :style="'background:' + (portalDraft.branding.accentColor || '#152656')"></div>
+                </template>
                 <div>
                   <p class="text-sm font-bold text-slate-800" x-text="portalDraft.branding.name || 'Partner name'"></p>
                   <p class="text-xs text-slate-400" x-text="portalDraft.branding.fullName || 'Full company name'"></p>
+                </div>
+                <div class="ml-auto flex gap-1">
+                  <template x-for="code in (portalDraft.branding.languages||['en'])" :key="code">
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-md border border-slate-200 text-slate-500 uppercase" x-text="code"></span>
+                  </template>
                 </div>
               </div>
             </div>
@@ -1769,7 +1868,7 @@
           status: 'off',
           welcomeTitle: '',
           welcomeMessage: '',
-          branding: { name: '', fullName: '', accentColor: '#152656', defaultLang: 'en' },
+          branding: { name: '', fullName: '', accentColor: '#152656', defaultLang: 'en', languages: ['en'], langMode: 'toggle', logoUrl: '' },
           videos: [],
           meetings: [],
           scenarios: [],
@@ -2204,7 +2303,7 @@
             status: cfg.status || 'off',
             welcomeTitle: cfg.welcomeTitle || '',
             welcomeMessage: cfg.welcomeMessage || '',
-            branding: JSON.parse(JSON.stringify(cfg.branding || { name: '', fullName: '', accentColor: '#152656', defaultLang: 'en' })),
+            branding: JSON.parse(JSON.stringify(cfg.branding || { name: '', fullName: '', accentColor: '#152656', defaultLang: 'en', languages: ['en'], langMode: 'toggle', logoUrl: '' })),
             videos: JSON.parse(JSON.stringify(cfg.videos || [])),
             meetings: JSON.parse(JSON.stringify(cfg.meetings || [])),
             scenarios: JSON.parse(JSON.stringify(cfg.scenarios || [])),
