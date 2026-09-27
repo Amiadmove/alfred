@@ -9,10 +9,15 @@ const BLOB_PREFIX = 'portal-clients/';
 async function readFromBlob(clientId) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
-    const { blobs } = await list({ prefix: BLOB_PREFIX + clientId + '.json' });
+    const { blobs } = await list({
+      prefix: BLOB_PREFIX + clientId + '.json',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
     const blob = blobs.find(b => b.pathname === BLOB_PREFIX + clientId + '.json');
     if (!blob) return null;
-    const r = await fetch(blob.url + '?t=' + Date.now()); // bust CDN cache
+    // For private stores use downloadUrl (signed), fall back to url
+    const fetchUrl = blob.downloadUrl || blob.url;
+    const r = await fetch(fetchUrl);
     if (!r.ok) return null;
     return await r.json();
   } catch {
@@ -64,9 +69,10 @@ module.exports = async function handler(req, res) {
       client.portalConfig = req.body;
 
       await put(BLOB_PREFIX + clientId + '.json', JSON.stringify(client, null, 2), {
-        access: 'public',
+        access: 'private',
         addRandomSuffix: false,
         contentType: 'application/json',
+        token: process.env.BLOB_READ_WRITE_TOKEN,
       });
 
       return res.json({ ok: true, client_id: clientId });
