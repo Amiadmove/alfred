@@ -1371,9 +1371,14 @@
         </button>
         <label class="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:border-blue-400 hover:text-blue-500 cursor-pointer">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          Upload JSON
+          Import JSON
           <input type="file" accept=".json" class="hidden" @change="rnUploadJson($event)">
         </label>
+        <button @click="rnExportJson()" x-show="rnItems.length > 0"
+          class="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:border-blue-400 hover:text-blue-500">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export JSON
+        </button>
         <button @click="rnAddItem()"
           class="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors" style="background:#3689FB;">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -1433,6 +1438,11 @@
         </div>
         <p class="font-semibold text-slate-700 text-sm">No release notes yet</p>
         <p class="mt-1 text-xs text-slate-400">Click "Add item" to start building your update.</p>
+        <button @click="rnLoadExample()"
+          class="mt-4 flex items-center gap-1.5 rounded-lg border border-blue-300 px-4 py-2 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500 hover:text-white">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
+          Load example
+        </button>
       </div>
     </template>
 
@@ -2554,6 +2564,29 @@
           this.rnShowImport = false;
           this.rnImportText = '';
           this.rnImportPreview = null;
+        },
+
+        rnExportJson() {
+          const data = { items: this.rnItems };
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'release-notes-' + new Date().toISOString().slice(0,10) + '.json';
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+
+        rnLoadExample() {
+          const examples = [
+            { id: 'ex-1', category: 'NEW', title: 'Dynamic legal documents at checkout', description: 'Checkout now displays dynamic documents per product type. PDF documents are automatically filled with dynamic content.' },
+            { id: 'ex-2', category: 'NEW', title: 'Organization Admin — Full Reports Visibility', description: 'Organization-level admins can now view all bookings and stores directly from the reports panel — no need to switch into individual stores.' },
+            { id: 'ex-3', category: 'NEW', title: 'Credit Line Management for Stores', description: 'Organization admins can now enable credit line as a payment method for specific stores and allocate a dedicated credit balance to each one.' },
+            { id: 'ex-4', category: 'IMPROVED', title: 'Checkout fields adapted per market', description: 'Phone number, Citizenship, and Country of Issue fields are now tailored per market, ensuring a smoother checkout experience.' },
+            { id: 'ex-5', category: 'IMPROVED', title: 'Hotel-Only Search — Expanded Results & Map Improvements', description: 'Hotel search results now cover a broader range of properties. The map view has been improved for a clearer, more intuitive browsing experience.' },
+            { id: 'ex-6', category: 'FIXED', title: 'Pilot accounts — workspace & phone code issues resolved', description: 'Fixed workspace assignment and country phone code registration issues affecting pilot accounts.' },
+          ];
+          this.rnItems = examples.map(e => ({ ...e, id: 'rn-ex-' + Date.now() + '-' + e.id }));
         },
 
         rnUploadJson(event) {
