@@ -36,6 +36,7 @@ module.exports = async function handler(req, res) {
       await put(BLOB_PATH, JSON.stringify(req.body, null, 2), {
         access: 'private',
         addRandomSuffix: false,
+        allowOverwrite: true,
         contentType: 'application/json',
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
