@@ -1352,7 +1352,7 @@
   </div>
 
   <!-- ===== RELEASE NOTES VIEW ===== -->
-  <div x-show="view === 'releaseNotes'" class="max-w-3xl mx-auto px-6 py-8">
+  <div x-show="view === 'releaseNotes'" class="px-6 py-8 max-w-7xl mx-auto">
 
     <!-- Header -->
     <div class="flex items-start justify-between mb-6">
@@ -1361,7 +1361,6 @@
         <p class="text-xs text-slate-400 mt-1" x-text="rnItems.length === 0 ? 'Add items to describe what changed this period.' : rnItems.length + ' item' + (rnItems.length !== 1 ? 's' : '') + ' · global, shown in all portals'"></p>
       </div>
       <div class="flex items-center gap-2">
-        <!-- Save feedback -->
         <span x-show="rnSaved" class="text-xs text-green-600 font-medium">✓ Saved</span>
         <span x-show="rnError" class="text-xs text-red-500" x-text="rnError"></span>
         <button @click="rnShowImport = !rnShowImport"
@@ -1392,123 +1391,173 @@
       </div>
     </div>
 
-    <!-- Paste text panel -->
-    <div x-show="rnShowImport" class="mb-4 rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-      <p class="text-xs text-slate-500">Paste release notes below. Use section headers like <strong>Features:</strong>, <strong>Bug fixed:</strong>, <strong>Improved:</strong> followed by <code>-</code> bullets.</p>
-      <textarea x-model="rnImportText" rows="7" placeholder="Features:&#10;- New checkout flow&#10;&#10;Bug fixed:&#10;- Login redirect fixed"
-        class="w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700 outline-none focus:border-blue-400"></textarea>
-      <div x-show="rnImportPreview !== null" class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400" x-text="'Preview — ' + (rnImportPreview||[]).length + ' items'"></p>
-        <template x-for="item in (rnImportPreview||[])" :key="item.id">
-          <div class="flex items-center gap-2 text-xs">
-            <span class="rounded px-1.5 py-0.5 text-[10px] font-bold border"
-              :class="{
-                'bg-teal-50 text-teal-700 border-teal-200': item.category === 'NEW',
-                'bg-blue-50 text-blue-700 border-blue-200': item.category === 'IMPROVED',
-                'bg-orange-50 text-orange-700 border-orange-200': item.category === 'FIXED',
-                'bg-purple-50 text-purple-700 border-purple-200': item.category === 'STATUS'
-              }" x-text="item.category"></span>
-            <span class="text-slate-700" x-text="item.title"></span>
+    <!-- Split layout: editor left, preview right -->
+    <div class="grid gap-8" style="grid-template-columns: 1fr 380px; align-items: start;">
+
+      <!-- LEFT: Editor -->
+      <div>
+        <!-- Paste text panel -->
+        <div x-show="rnShowImport" class="mb-4 rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+          <p class="text-xs text-slate-500">Paste release notes below. Use section headers like <strong>Features:</strong>, <strong>Bug fixed:</strong>, <strong>Improved:</strong> followed by <code>-</code> bullets.</p>
+          <textarea x-model="rnImportText" rows="7" placeholder="Features:&#10;- New checkout flow&#10;&#10;Bug fixed:&#10;- Login redirect fixed"
+            class="w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700 outline-none focus:border-blue-400"></textarea>
+          <div x-show="rnImportPreview !== null" class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400" x-text="'Preview — ' + (rnImportPreview||[]).length + ' items'"></p>
+            <template x-for="item in (rnImportPreview||[])" :key="item.id">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="rounded px-1.5 py-0.5 text-[10px] font-bold border"
+                  :class="{
+                    'bg-teal-50 text-teal-700 border-teal-200': item.category === 'NEW',
+                    'bg-blue-50 text-blue-700 border-blue-200': item.category === 'IMPROVED',
+                    'bg-orange-50 text-orange-700 border-orange-200': item.category === 'FIXED',
+                    'bg-purple-50 text-purple-700 border-purple-200': item.category === 'STATUS'
+                  }" x-text="item.category"></span>
+                <span class="text-slate-700" x-text="item.title"></span>
+              </div>
+            </template>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button @click="rnShowImport=false; rnImportText=''; rnImportPreview=null"
+              class="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+            <template x-if="rnImportPreview === null">
+              <button @click="rnPreviewImport()" :disabled="!rnImportText.trim()"
+                class="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-500 disabled:opacity-40">
+                Preview
+              </button>
+            </template>
+            <template x-if="rnImportPreview !== null">
+              <button @click="rnDoImport()" :disabled="(rnImportPreview||[]).length === 0"
+                class="rounded-lg px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40 transition-colors" style="background:#3689FB;">
+                Import <span x-text="(rnImportPreview||[]).length + ' items'"></span>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <template x-if="rnItems.length === 0 && !rnLoading">
+          <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full" style="background:#EBF3FF;">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#3689FB" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            </div>
+            <p class="font-semibold text-slate-700 text-sm">No release notes yet</p>
+            <p class="mt-1 text-xs text-slate-400">Click "Add item" to start building your update.</p>
+            <button @click="rnLoadExample()"
+              class="mt-4 flex items-center gap-1.5 rounded-lg border border-blue-300 px-4 py-2 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500 hover:text-white">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
+              Load example
+            </button>
           </div>
         </template>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button @click="rnShowImport=false; rnImportText=''; rnImportPreview=null"
-          class="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
-        <template x-if="rnImportPreview === null">
-          <button @click="rnPreviewImport()" :disabled="!rnImportText.trim()"
-            class="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-500 disabled:opacity-40">
-            Preview
-          </button>
+
+        <!-- Loading -->
+        <template x-if="rnLoading">
+          <div class="text-center py-16 text-slate-400 text-sm">Loading…</div>
         </template>
-        <template x-if="rnImportPreview !== null">
-          <button @click="rnDoImport()" :disabled="(rnImportPreview||[]).length === 0"
-            class="rounded-lg px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40 transition-colors" style="background:#3689FB;">
-            Import <span x-text="(rnImportPreview||[]).length + ' items'"></span>
-          </button>
-        </template>
-      </div>
-    </div>
 
-    <!-- Empty state -->
-    <template x-if="rnItems.length === 0 && !rnLoading">
-      <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
-        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full" style="background:#EBF3FF;">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#3689FB" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        </div>
-        <p class="font-semibold text-slate-700 text-sm">No release notes yet</p>
-        <p class="mt-1 text-xs text-slate-400">Click "Add item" to start building your update.</p>
-        <button @click="rnLoadExample()"
-          class="mt-4 flex items-center gap-1.5 rounded-lg border border-blue-300 px-4 py-2 text-xs font-medium text-blue-500 transition-colors hover:bg-blue-500 hover:text-white">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
-          Load example
-        </button>
-      </div>
-    </template>
-
-    <!-- Loading -->
-    <template x-if="rnLoading">
-      <div class="text-center py-16 text-slate-400 text-sm">Loading…</div>
-    </template>
-
-    <!-- Items list -->
-    <div x-show="rnItems.length > 0" class="space-y-3">
-      <template x-for="(item, idx) in rnItems" :key="item.id">
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div class="flex items-start gap-3">
-            <!-- Category dot + select -->
-            <div class="flex items-center gap-2 shrink-0 mt-0.5">
-              <span class="w-2 h-2 rounded-full shrink-0"
-                :class="{
-                  'bg-teal-500': item.category === 'NEW',
-                  'bg-blue-500': item.category === 'IMPROVED',
-                  'bg-orange-400': item.category === 'FIXED',
-                  'bg-purple-500': item.category === 'STATUS'
-                }"></span>
-              <select x-model="item.category"
-                class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600 outline-none focus:border-blue-400">
-                <option value="NEW">New</option>
-                <option value="IMPROVED">Improved</option>
-                <option value="FIXED">Fixed</option>
-                <option value="STATUS">Status</option>
-              </select>
-            </div>
-            <!-- Content -->
-            <div class="flex-1 space-y-2 min-w-0">
-              <input x-model="item.title" type="text" placeholder="Title, e.g. 'Faster checkout'"
-                class="w-full rounded-md border border-slate-200 bg-transparent px-2 py-1 text-sm font-semibold text-slate-700 outline-none placeholder:font-normal placeholder:text-slate-300 focus:border-blue-400 focus:bg-slate-50" />
-              <textarea x-model="item.description" rows="3"
-                placeholder="Describe what changed in plain language — customers will see this."
-                class="w-full resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 outline-none focus:border-blue-400 placeholder:text-slate-300"></textarea>
-              <!-- Badge -->
-              <div class="flex justify-end">
-                <span class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium"
-                  :class="{
-                    'bg-teal-50 border-teal-200 text-teal-700': item.category === 'NEW',
-                    'bg-blue-50 border-blue-200 text-blue-700': item.category === 'IMPROVED',
-                    'bg-orange-50 border-orange-200 text-orange-700': item.category === 'FIXED',
-                    'bg-purple-50 border-purple-200 text-purple-700': item.category === 'STATUS'
-                  }">
-                  <span class="w-1.5 h-1.5 rounded-full"
+        <!-- Items list -->
+        <div x-show="rnItems.length > 0" class="space-y-3">
+          <template x-for="(item, idx) in rnItems" :key="item.id">
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="flex items-start gap-3">
+                <!-- Category dot + select -->
+                <div class="flex items-center gap-2 shrink-0 mt-0.5">
+                  <span class="w-2 h-2 rounded-full shrink-0"
                     :class="{
                       'bg-teal-500': item.category === 'NEW',
                       'bg-blue-500': item.category === 'IMPROVED',
                       'bg-orange-400': item.category === 'FIXED',
                       'bg-purple-500': item.category === 'STATUS'
                     }"></span>
-                  <span x-text="item.category === 'NEW' ? 'New' : item.category === 'IMPROVED' ? 'Improved' : item.category === 'FIXED' ? 'Fixed' : 'Status'"></span>
-                </span>
+                  <select x-model="item.category"
+                    class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600 outline-none focus:border-blue-400">
+                    <option value="NEW">New</option>
+                    <option value="IMPROVED">Improved</option>
+                    <option value="FIXED">Fixed</option>
+                    <option value="STATUS">Status</option>
+                  </select>
+                </div>
+                <!-- Content -->
+                <div class="flex-1 space-y-2 min-w-0">
+                  <input x-model="item.title" type="text" placeholder="Title, e.g. 'Faster checkout'"
+                    class="w-full rounded-md border border-slate-200 bg-transparent px-2 py-1 text-sm font-semibold text-slate-700 outline-none placeholder:font-normal placeholder:text-slate-300 focus:border-blue-400 focus:bg-slate-50" />
+                  <textarea x-model="item.description" rows="3"
+                    placeholder="Describe what changed in plain language — customers will see this."
+                    class="w-full resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 outline-none focus:border-blue-400 placeholder:text-slate-300"></textarea>
+                  <div class="flex justify-end">
+                    <span class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium"
+                      :class="{
+                        'bg-teal-50 border-teal-200 text-teal-700': item.category === 'NEW',
+                        'bg-blue-50 border-blue-200 text-blue-700': item.category === 'IMPROVED',
+                        'bg-orange-50 border-orange-200 text-orange-700': item.category === 'FIXED',
+                        'bg-purple-50 border-purple-200 text-purple-700': item.category === 'STATUS'
+                      }">
+                      <span class="w-1.5 h-1.5 rounded-full"
+                        :class="{
+                          'bg-teal-500': item.category === 'NEW',
+                          'bg-blue-500': item.category === 'IMPROVED',
+                          'bg-orange-400': item.category === 'FIXED',
+                          'bg-purple-500': item.category === 'STATUS'
+                        }"></span>
+                      <span x-text="item.category === 'NEW' ? 'New' : item.category === 'IMPROVED' ? 'Improved' : item.category === 'FIXED' ? 'Fixed' : 'Status'"></span>
+                    </span>
+                  </div>
+                </div>
+                <!-- Delete -->
+                <button @click="rnItems.splice(idx, 1)"
+                  class="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
               </div>
             </div>
-            <!-- Delete -->
-            <button @click="rnItems.splice(idx, 1)"
-              class="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+          </template>
+        </div>
+      </div>
+
+      <!-- RIGHT: Customer-facing preview -->
+      <div class="sticky top-6">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Customer-facing preview
+        </p>
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <!-- Preview header -->
+          <div class="px-5 pt-5 pb-4 border-b border-slate-100">
+            <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#3689FB;">Move Group · Customer Update</p>
+            <h2 class="text-lg font-bold mt-1" style="color:#152656;">What's new</h2>
+          </div>
+          <!-- Preview items -->
+          <div class="px-5 py-4">
+            <template x-if="rnItems.length === 0">
+              <p class="text-sm text-slate-400 py-4 text-center">Add release note items to describe what's new for this period.</p>
+            </template>
+            <div x-show="rnItems.length > 0" class="space-y-4">
+              <template x-for="item in rnItems" :key="item.id + '-prev'">
+                <div x-show="item.title || item.description">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold"
+                      :class="{
+                        'bg-teal-50 border-teal-200 text-teal-700': item.category === 'NEW',
+                        'bg-blue-50 border-blue-200 text-blue-700': item.category === 'IMPROVED',
+                        'bg-orange-50 border-orange-200 text-orange-700': item.category === 'FIXED',
+                        'bg-purple-50 border-purple-200 text-purple-700': item.category === 'STATUS'
+                      }" x-text="item.category === 'NEW' ? 'New' : item.category === 'IMPROVED' ? 'Improved' : item.category === 'FIXED' ? 'Fixed' : 'Status'">
+                    </span>
+                  </div>
+                  <p class="text-sm font-semibold text-slate-800" x-text="item.title || 'Untitled'"></p>
+                  <p class="text-xs text-slate-500 mt-0.5 leading-relaxed" x-text="item.description"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- Preview footer -->
+          <div class="px-5 py-3 border-t border-slate-100">
+            <p class="text-[10px] text-slate-400">Move Group — powered by Alfred Travel</p>
           </div>
         </div>
-      </template>
-    </div>
+      </div>
+
+    </div><!-- end grid -->
 
   </div>
 
