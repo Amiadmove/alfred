@@ -176,7 +176,7 @@
       { id:'scenarios',   icon:'✅', en:'Test Scenarios',   tr:'Test Senaryoları',  badge: null },
       { id:'translation', icon:'📸', en:'UI Translation',   tr:'Arayüz Çevirisi',   badge: null },
       { id:'meetings',    icon:'📅', en:'Meeting Recaps',   tr:'Toplantı Özetleri', badge: (cfg.meetings||[]).length || null },
-      { id:'changelog',   icon:'🚀', en:"What's New",       tr:'Yenilikler',         badge: (cfg.releaseNotes||[]).reduce((s,p)=>s+(p.items||[]).length,0) || null },
+      { id:'changelog',   icon:'🚀', en:"What's New",       tr:'Yenilikler',         badge: null },
       { id:'feedback',    icon:'💬', en:'Feedback',         tr:'Geri Bildirim',      badge: null },
     ];
 
@@ -587,33 +587,61 @@
   function buildChangelog(cfg) {
     const container = document.getElementById('changelog-list');
     if (!container) return;
-    const periods = cfg.releaseNotes || [];
-    if (periods.length === 0) {
-      container.innerHTML = '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:40px 0;">No release notes yet.</p>';
-      return;
-    }
-    const categoryStyle = {
-      NEW:      { bg: '#dcfce7', color: '#15803d', label: 'NEW' },
-      IMPROVED: { bg: '#dbeafe', color: '#1d4ed8', label: 'IMPROVED' },
-      FIXED:    { bg: '#ffedd5', color: '#c2410c', label: 'FIXED' },
-    };
-    container.innerHTML = periods.map(period => `
-      <div style="margin-bottom:24px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
-          ${period.period || 'Release'}
-        </div>
-        ${(period.items || []).map(item => {
-          const s = categoryStyle[item.category] || categoryStyle.NEW;
-          return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #f8fafc;">
-            <span style="background:${s.bg};color:${s.color};font-size:9px;font-weight:800;letter-spacing:.07em;padding:3px 7px;border-radius:6px;white-space:nowrap;align-self:flex-start;margin-top:2px;">${s.label}</span>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:3px;">${item.title || ''}</div>
-              ${item.description ? `<div style="font-size:12px;color:#64748b;line-height:1.5;">${item.description}</div>` : ''}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    `).join('');
+    container.innerHTML = '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:40px 0;">Loading…</p>';
+
+    fetch('/api/release-notes')
+      .then(r => r.ok ? r.json() : { items: [] })
+      .catch(() => ({ items: [] }))
+      .then(data => {
+        const items = data.items || [];
+
+        // Update nav badge
+        const navBtn = document.querySelector('[data-target="changelog"] .nav-badge');
+        if (navBtn && items.length > 0) {
+          navBtn.textContent = items.length;
+          navBtn.style.display = 'inline-flex';
+        }
+
+        if (items.length === 0) {
+          container.innerHTML = '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:40px 0;">No release notes yet.</p>';
+          return;
+        }
+
+        const ORDER = ['NEW', 'IMPROVED', 'FIXED', 'STATUS'];
+        const CAT = {
+          NEW:      { label: 'New Features',  icon: '✦', dot: '#0d9488', bg: '#f0fdf9', border: '#99f6e4', headerColor: '#0f766e' },
+          IMPROVED: { label: 'Improvements',  icon: '↑', dot: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', headerColor: '#1d4ed8' },
+          FIXED:    { label: 'Fixed',          icon: '✓', dot: '#ea580c', bg: '#fff7ed', border: '#fed7aa', headerColor: '#c2410c' },
+          STATUS:   { label: 'Status Updates', icon: '●', dot: '#7c3aed', bg: '#faf5ff', border: '#e9d5ff', headerColor: '#6d28d9' },
+        };
+
+        const groups = {};
+        items.forEach(item => {
+          const cat = item.category || 'NEW';
+          if (!groups[cat]) groups[cat] = [];
+          groups[cat].push(item);
+        });
+
+        container.innerHTML = ORDER.filter(cat => groups[cat]?.length).map(cat => {
+          const c = CAT[cat];
+          const rows = groups[cat].map(item => `
+            <div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #f8fafc;">
+              <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${c.dot};margin-top:5px;"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:3px;">${item.title || ''}</div>
+                ${item.description ? `<div style="font-size:12px;color:#475569;line-height:1.6;">${item.description}</div>` : ''}
+              </div>
+            </div>`).join('');
+          return `
+            <div style="margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid ${c.border};">
+              <div style="background:${c.bg};border-bottom:1px solid ${c.border};padding:9px 14px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:10px;font-weight:800;letter-spacing:.08em;color:${c.headerColor};text-transform:uppercase;">${c.icon}&nbsp;&nbsp;${c.label}</span>
+                <span style="font-size:11px;font-weight:700;color:${c.headerColor};background:white;border-radius:999px;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;">${groups[cat].length}</span>
+              </div>
+              <div style="padding:0 14px;">${rows}</div>
+            </div>`;
+        }).join('');
+      });
   }
 
   // ─── Screenshot Translation ────────────────────
