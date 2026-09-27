@@ -719,7 +719,7 @@
           if (!this.newClientDraft?.id) return;
           this.saving = true;
           try {
-            const res = await fetch('/api/save-client', {
+            const res = await fetch('/api/admin-clients', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'x-session-token': sessionStorage.getItem('adminToken') || '' },
               body: JSON.stringify(this.newClientDraft),
@@ -797,7 +797,7 @@
           this.saving = true;
           this.saveError = '';
           try {
-            const res = await fetch('/api/save-client', {
+            const res = await fetch('/api/admin-clients', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
