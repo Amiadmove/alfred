@@ -104,6 +104,11 @@
         <span class="text-xs font-semibold text-slate-400 hidden sm:block">/ Submissions Dashboard</span>
       </div>
       <div class="flex items-center gap-3">
+        <button @click="openReleaseNotes()" class="text-xs font-medium flex items-center gap-1.5 transition-colors"
+          :class="view === 'releaseNotes' ? 'text-blue-600 font-semibold' : 'text-slate-500 hover:text-slate-800'">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Release Notes
+        </button>
         <button @click="openPortals()" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
           Partner Portals
@@ -1346,6 +1351,152 @@
     </div>
   </div>
 
+  <!-- ===== RELEASE NOTES VIEW ===== -->
+  <div x-show="view === 'releaseNotes'" class="max-w-3xl mx-auto px-6 py-8">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h1 class="text-xl font-bold" style="color:#152656;">Release Notes</h1>
+        <p class="text-xs text-slate-400 mt-1" x-text="rnItems.length === 0 ? 'Add items to describe what changed this period.' : rnItems.length + ' item' + (rnItems.length !== 1 ? 's' : '') + ' · global, shown in all portals'"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Save feedback -->
+        <span x-show="rnSaved" class="text-xs text-green-600 font-medium">✓ Saved</span>
+        <span x-show="rnError" class="text-xs text-red-500" x-text="rnError"></span>
+        <button @click="rnShowImport = !rnShowImport"
+          class="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:border-blue-400 hover:text-blue-500">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Paste text
+        </button>
+        <button @click="rnAddItem()"
+          class="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors" style="background:#3689FB;">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add item
+        </button>
+        <button @click="saveReleaseNotes()" :disabled="rnSaving"
+          class="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white disabled:opacity-50 transition-colors" style="background:#152656;">
+          <span x-show="!rnSaving">Save</span>
+          <span x-show="rnSaving">Saving…</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Paste text panel -->
+    <div x-show="rnShowImport" class="mb-4 rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+      <p class="text-xs text-slate-500">Paste release notes below. Use section headers like <strong>Features:</strong>, <strong>Bug fixed:</strong>, <strong>Improved:</strong> followed by <code>-</code> bullets.</p>
+      <textarea x-model="rnImportText" rows="7" placeholder="Features:&#10;- New checkout flow&#10;&#10;Bug fixed:&#10;- Login redirect fixed"
+        class="w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700 outline-none focus:border-blue-400"></textarea>
+      <div x-show="rnImportPreview !== null" class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400" x-text="'Preview — ' + (rnImportPreview||[]).length + ' items'"></p>
+        <template x-for="item in (rnImportPreview||[])" :key="item.id">
+          <div class="flex items-center gap-2 text-xs">
+            <span class="rounded px-1.5 py-0.5 text-[10px] font-bold border"
+              :class="{
+                'bg-teal-50 text-teal-700 border-teal-200': item.category === 'NEW',
+                'bg-blue-50 text-blue-700 border-blue-200': item.category === 'IMPROVED',
+                'bg-orange-50 text-orange-700 border-orange-200': item.category === 'FIXED',
+                'bg-purple-50 text-purple-700 border-purple-200': item.category === 'STATUS'
+              }" x-text="item.category"></span>
+            <span class="text-slate-700" x-text="item.title"></span>
+          </div>
+        </template>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button @click="rnShowImport=false; rnImportText=''; rnImportPreview=null"
+          class="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors">Cancel</button>
+        <template x-if="rnImportPreview === null">
+          <button @click="rnPreviewImport()" :disabled="!rnImportText.trim()"
+            class="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-500 disabled:opacity-40">
+            Preview
+          </button>
+        </template>
+        <template x-if="rnImportPreview !== null">
+          <button @click="rnDoImport()" :disabled="(rnImportPreview||[]).length === 0"
+            class="rounded-lg px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40 transition-colors" style="background:#3689FB;">
+            Import <span x-text="(rnImportPreview||[]).length + ' items'"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <template x-if="rnItems.length === 0 && !rnLoading">
+      <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center">
+        <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full" style="background:#EBF3FF;">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#3689FB" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        </div>
+        <p class="font-semibold text-slate-700 text-sm">No release notes yet</p>
+        <p class="mt-1 text-xs text-slate-400">Click "Add item" to start building your update.</p>
+      </div>
+    </template>
+
+    <!-- Loading -->
+    <template x-if="rnLoading">
+      <div class="text-center py-16 text-slate-400 text-sm">Loading…</div>
+    </template>
+
+    <!-- Items list -->
+    <div x-show="rnItems.length > 0" class="space-y-3">
+      <template x-for="(item, idx) in rnItems" :key="item.id">
+        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            <!-- Category dot + select -->
+            <div class="flex items-center gap-2 shrink-0 mt-0.5">
+              <span class="w-2 h-2 rounded-full shrink-0"
+                :class="{
+                  'bg-teal-500': item.category === 'NEW',
+                  'bg-blue-500': item.category === 'IMPROVED',
+                  'bg-orange-400': item.category === 'FIXED',
+                  'bg-purple-500': item.category === 'STATUS'
+                }"></span>
+              <select x-model="item.category"
+                class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600 outline-none focus:border-blue-400">
+                <option value="NEW">New</option>
+                <option value="IMPROVED">Improved</option>
+                <option value="FIXED">Fixed</option>
+                <option value="STATUS">Status</option>
+              </select>
+            </div>
+            <!-- Content -->
+            <div class="flex-1 space-y-2 min-w-0">
+              <input x-model="item.title" type="text" placeholder="Title, e.g. 'Faster checkout'"
+                class="w-full rounded-md border border-slate-200 bg-transparent px-2 py-1 text-sm font-semibold text-slate-700 outline-none placeholder:font-normal placeholder:text-slate-300 focus:border-blue-400 focus:bg-slate-50" />
+              <textarea x-model="item.description" rows="3"
+                placeholder="Describe what changed in plain language — customers will see this."
+                class="w-full resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 outline-none focus:border-blue-400 placeholder:text-slate-300"></textarea>
+              <!-- Badge -->
+              <div class="flex justify-end">
+                <span class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium"
+                  :class="{
+                    'bg-teal-50 border-teal-200 text-teal-700': item.category === 'NEW',
+                    'bg-blue-50 border-blue-200 text-blue-700': item.category === 'IMPROVED',
+                    'bg-orange-50 border-orange-200 text-orange-700': item.category === 'FIXED',
+                    'bg-purple-50 border-purple-200 text-purple-700': item.category === 'STATUS'
+                  }">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                    :class="{
+                      'bg-teal-500': item.category === 'NEW',
+                      'bg-blue-500': item.category === 'IMPROVED',
+                      'bg-orange-400': item.category === 'FIXED',
+                      'bg-purple-500': item.category === 'STATUS'
+                    }"></span>
+                  <span x-text="item.category === 'NEW' ? 'New' : item.category === 'IMPROVED' ? 'Improved' : item.category === 'FIXED' ? 'Fixed' : 'Status'"></span>
+                </span>
+              </div>
+            </div>
+            <!-- Delete -->
+            <button @click="rnItems.splice(idx, 1)"
+              class="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+  </div>
+
   <!-- ===== PARTNER PORTALS VIEW ===== -->
   <div x-show="view === 'portals'" class="flex" style="height:calc(100vh - 56px)">
 
@@ -1628,83 +1779,6 @@
               </div>
             </div>
 
-            <!-- ── WHAT'S NEW / RELEASE NOTES ── -->
-            <div x-show="portalTab === 'changelog'" class="space-y-4">
-              <div class="flex items-center justify-between">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Release Periods</p>
-                <button @click="
-                  portalDraft.releaseNotes.unshift({
-                    id: 'rn-' + Date.now(),
-                    period: '',
-                    items: []
-                  })" class="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                  Add period
-                </button>
-              </div>
-
-              <template x-if="(portalDraft.releaseNotes||[]).length === 0">
-                <div class="text-center py-10 text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">
-                  No release notes yet — click "Add period" to start
-                </div>
-              </template>
-
-              <template x-for="(period, pi) in portalDraft.releaseNotes" :key="period.id">
-                <div class="border border-slate-200 rounded-2xl overflow-hidden">
-                  <!-- Period header -->
-                  <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-100">
-                    <input x-model="period.period" type="text" placeholder="e.g. Sep 11–25, 2026"
-                      class="flex-1 bg-transparent text-sm font-semibold text-slate-700 placeholder-slate-300 border-none outline-none" />
-                    <span class="text-xs text-slate-400" x-text="(period.items||[]).length + ' items'"></span>
-                    <button @click="portalDraft.releaseNotes.splice(pi, 1)"
-                      class="text-slate-300 hover:text-red-400 transition-colors">
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    </button>
-                  </div>
-
-                  <!-- Items -->
-                  <div class="divide-y divide-slate-100">
-                    <template x-for="(item, ii) in (period.items||[])" :key="item.id">
-                      <div class="px-4 py-3 space-y-2">
-                        <div class="flex items-center gap-2">
-                          <select x-model="item.category"
-                            class="text-[10px] font-bold uppercase rounded-lg px-2 py-1 border-none outline-none cursor-pointer"
-                            :class="{
-                              'bg-green-100 text-green-700': item.category === 'NEW',
-                              'bg-blue-100 text-blue-700': item.category === 'IMPROVED',
-                              'bg-orange-100 text-orange-700': item.category === 'FIXED'
-                            }">
-                            <option value="NEW">NEW</option>
-                            <option value="IMPROVED">IMPROVED</option>
-                            <option value="FIXED">FIXED</option>
-                          </select>
-                          <input x-model="item.title" type="text" placeholder="Feature title"
-                            class="flex-1 text-sm font-medium text-slate-700 border-none outline-none bg-transparent placeholder-slate-300" />
-                          <button @click="period.items.splice(ii, 1)"
-                            class="text-slate-200 hover:text-red-400 transition-colors shrink-0">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                          </button>
-                        </div>
-                        <textarea x-model="item.description" rows="2" placeholder="Description (optional)"
-                          class="w-full text-xs text-slate-500 border border-slate-100 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-blue-300 bg-white"></textarea>
-                      </div>
-                    </template>
-                  </div>
-
-                  <!-- Add item -->
-                  <div class="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                    <button @click="
-                      if (!period.items) period.items = [];
-                      period.items.push({ id: 'item-' + Date.now(), category: 'NEW', title: '', description: '' })"
-                      class="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                      Add item
-                    </button>
-                  </div>
-                </div>
-              </template>
-            </div>
-
             <!-- ── BRANDING ── -->
             <div x-show="portalTab === 'branding'" class="space-y-5">
 
@@ -1934,12 +2008,11 @@
         portalTab: 'general',
         get portalTabs() {
           return [
-            { id: 'general',   label: 'General',        count: 0 },
-            { id: 'videos',    label: 'Videos',         count: this.portalDraft.videos.length },
-            { id: 'meetings',  label: 'Meetings',       count: this.portalDraft.meetings.length },
-            { id: 'scenarios', label: 'Scenarios',      count: this.portalDraft.scenarios.length },
-            { id: 'changelog', label: "What's New",     count: (this.portalDraft.releaseNotes||[]).reduce((s,p)=>s+(p.items||[]).length,0) },
-            { id: 'branding',  label: 'Branding',       count: 0 },
+            { id: 'general',   label: 'General',   count: 0 },
+            { id: 'videos',    label: 'Videos',    count: this.portalDraft.videos.length },
+            { id: 'meetings',  label: 'Meetings',  count: this.portalDraft.meetings.length },
+            { id: 'scenarios', label: 'Scenarios', count: this.portalDraft.scenarios.length },
+            { id: 'branding',  label: 'Branding',  count: 0 },
           ];
         },
         portalDraft: {
@@ -1961,6 +2034,16 @@
         portalLinkCopied: false,
         portalSidePreview: false,
         portalPreviewKey: 1,
+
+        // Release Notes state
+        rnItems: [],
+        rnLoading: false,
+        rnSaving: false,
+        rnSaved: false,
+        rnError: '',
+        rnShowImport: false,
+        rnImportText: '',
+        rnImportPreview: null,
 
         SECTIONS: {
           holidayheroes: [
@@ -2394,6 +2477,78 @@
           this.portalTab = 'general';
           this.portalSaved = false;
           this.portalError = '';
+        },
+
+        async openReleaseNotes() {
+          this.view = 'releaseNotes';
+          await this.loadReleaseNotes();
+        },
+
+        async loadReleaseNotes() {
+          this.rnLoading = true;
+          this.rnError = '';
+          try {
+            const res = await fetch('/api/release-notes', { headers: this.authH() });
+            const data = await res.json();
+            this.rnItems = data.items || [];
+          } catch (e) {
+            this.rnError = 'Failed to load release notes.';
+          } finally {
+            this.rnLoading = false;
+          }
+        },
+
+        async saveReleaseNotes() {
+          this.rnSaving = true;
+          this.rnSaved = false;
+          this.rnError = '';
+          try {
+            const res = await fetch('/api/release-notes', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', ...this.authH() },
+              body: JSON.stringify({ items: this.rnItems }),
+            });
+            if (!res.ok) {
+              const j = await res.json().catch(() => ({}));
+              throw new Error(j.error || 'Save failed');
+            }
+            this.rnSaved = true;
+            setTimeout(() => this.rnSaved = false, 3000);
+          } catch (e) {
+            this.rnError = e.message;
+          } finally {
+            this.rnSaving = false;
+          }
+        },
+
+        rnAddItem() {
+          this.rnItems.unshift({ id: 'rn-' + Date.now(), category: 'NEW', title: '', description: '' });
+        },
+
+        rnPreviewImport() {
+          const text = this.rnImportText.trim();
+          if (!text) { this.rnImportPreview = []; return; }
+          const blocks = text.split(/\n{2,}/);
+          const cats = { new: 'NEW', improved: 'IMPROVED', fixed: 'FIXED', status: 'STATUS' };
+          const items = blocks.map((block, i) => {
+            const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+            if (!lines.length) return null;
+            let category = 'NEW';
+            let startIdx = 0;
+            const firstLower = lines[0].toLowerCase().replace(/[^a-z]/g, '');
+            if (cats[firstLower]) { category = cats[firstLower]; startIdx = 1; }
+            const title = lines[startIdx] || '';
+            const description = lines.slice(startIdx + 1).join(' ');
+            return { id: 'rn-import-' + Date.now() + '-' + i, category, title, description };
+          }).filter(Boolean);
+          this.rnImportPreview = items;
+        },
+
+        rnDoImport() {
+          this.rnItems = [...(this.rnImportPreview || []), ...this.rnItems];
+          this.rnShowImport = false;
+          this.rnImportText = '';
+          this.rnImportPreview = null;
         },
 
         async savePortal() {
