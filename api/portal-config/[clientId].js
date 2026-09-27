@@ -1,6 +1,31 @@
 const fs = require('fs');
 const path = require('path');
 const { checkAdminAuth } = require('../_auth');
+const { put, list } = require('@vercel/blob');
+
+const BLOB_PREFIX = 'portal-clients/';
+
+// Read client JSON from Vercel Blob (returns null if not found or Blob not configured)
+async function readFromBlob(clientId) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  try {
+    const { blobs } = await list({ prefix: BLOB_PREFIX + clientId + '.json' });
+    const blob = blobs.find(b => b.pathname === BLOB_PREFIX + clientId + '.json');
+    if (!blob) return null;
+    const r = await fetch(blob.url + '?t=' + Date.now()); // bust CDN cache
+    if (!r.ok) return null;
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
+// Read client JSON from local filesystem (git source of truth for initial data)
+function readFromFile(clientId) {
+  const filePath = path.join(process.cwd(), 'clients', `${clientId}.json`);
+  if (!fs.existsSync(filePath)) return null;
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); } catch { return null; }
+}
 
 module.exports = async function handler(req, res) {
   const clientId = req.query.clientId;
@@ -8,14 +33,12 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid client id' });
   }
 
-  const clientsDir = path.join(process.cwd(), 'clients');
-  const filePath = path.join(clientsDir, `${clientId}.json`);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Client not found' });
-
-  // GET — public, returns portalConfig directly (used by portal.js)
+  // GET — public, returns portalConfig (used by portal.js)
   if (req.method === 'GET') {
     try {
-      const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      // Blob takes priority (latest saved data), fall back to git file
+      const client = (await readFromBlob(clientId)) || readFromFile(clientId);
+      if (!client) return res.status(404).json({ error: 'Client not found' });
       const portalConfig = client.portalConfig || null;
       if (!portalConfig || portalConfig.status === 'off') {
         return res.status(404).json({ error: 'Portal not active' });
@@ -26,13 +49,26 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // POST / PUT — admin only, saves full portalConfig
+  // POST / PUT — admin only, saves portalConfig to Vercel Blob
   if (req.method === 'POST' || req.method === 'PUT') {
     if (!checkAdminAuth(req)) return res.status(401).json({ error: 'Unauthorized' });
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return res.status(503).json({ error: 'Vercel Blob not configured. Add BLOB_READ_WRITE_TOKEN to environment variables.' });
+    }
     try {
-      const client = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      // Start with git file as base, overlay with any previously saved Blob data
+      const base = readFromFile(clientId);
+      if (!base) return res.status(404).json({ error: 'Client not found' });
+      const saved = await readFromBlob(clientId);
+      const client = saved || base;
       client.portalConfig = req.body;
-      fs.writeFileSync(filePath, JSON.stringify(client, null, 2), 'utf8');
+
+      await put(BLOB_PREFIX + clientId + '.json', JSON.stringify(client, null, 2), {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: 'application/json',
+      });
+
       return res.json({ ok: true, client_id: clientId });
     } catch (err) {
       return res.status(500).json({ error: err.message });
