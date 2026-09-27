@@ -1531,29 +1531,66 @@
             <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#3689FB;">Move Group · Customer Update</p>
             <h2 class="text-lg font-bold mt-1" style="color:#152656;">What's new</h2>
           </div>
-          <!-- Preview items -->
-          <div class="px-5 py-4">
+          <!-- Preview items grouped by category -->
+          <div class="px-4 py-4 space-y-3">
             <template x-if="rnItems.length === 0">
-              <p class="text-sm text-slate-400 py-4 text-center">Add release note items to describe what's new for this period.</p>
+              <p class="text-sm text-slate-400 py-6 text-center">Add release note items to describe what's new for this period.</p>
             </template>
-            <div x-show="rnItems.length > 0" class="space-y-4">
-              <template x-for="item in rnItems" :key="item.id + '-prev'">
-                <div x-show="item.title || item.description">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold"
-                      :class="{
-                        'bg-teal-50 border-teal-200 text-teal-700': item.category === 'NEW',
-                        'bg-blue-50 border-blue-200 text-blue-700': item.category === 'IMPROVED',
-                        'bg-orange-50 border-orange-200 text-orange-700': item.category === 'FIXED',
-                        'bg-purple-50 border-purple-200 text-purple-700': item.category === 'STATUS'
-                      }" x-text="item.category === 'NEW' ? 'New' : item.category === 'IMPROVED' ? 'Improved' : item.category === 'FIXED' ? 'Fixed' : 'Status'">
-                    </span>
-                  </div>
-                  <p class="text-sm font-semibold text-slate-800" x-text="item.title || 'Untitled'"></p>
-                  <p class="text-xs text-slate-500 mt-0.5 leading-relaxed" x-text="item.description"></p>
+            <template x-for="group in rnGroupedItems" :key="group.category">
+              <div class="rounded-lg overflow-hidden border"
+                :class="{
+                  'border-teal-200':   group.category === 'NEW',
+                  'border-blue-200':   group.category === 'IMPROVED',
+                  'border-orange-200': group.category === 'FIXED',
+                  'border-purple-200': group.category === 'STATUS'
+                }">
+                <!-- Section header -->
+                <div class="flex items-center justify-between px-3 py-2 border-b"
+                  :class="{
+                    'bg-teal-50 border-teal-200':   group.category === 'NEW',
+                    'bg-blue-50 border-blue-200':   group.category === 'IMPROVED',
+                    'bg-orange-50 border-orange-200': group.category === 'FIXED',
+                    'bg-purple-50 border-purple-200': group.category === 'STATUS'
+                  }">
+                  <span class="text-[10px] font-bold uppercase tracking-widest"
+                    :class="{
+                      'text-teal-700':   group.category === 'NEW',
+                      'text-blue-700':   group.category === 'IMPROVED',
+                      'text-orange-700': group.category === 'FIXED',
+                      'text-purple-700': group.category === 'STATUS'
+                    }"
+                    x-text="(group.category === 'NEW' ? '✦  New Features' : group.category === 'IMPROVED' ? '↑  Improvements' : group.category === 'FIXED' ? '✓  Fixed' : '●  Status Updates')">
+                  </span>
+                  <span class="text-[10px] font-bold bg-white rounded-full w-5 h-5 flex items-center justify-center"
+                    :class="{
+                      'text-teal-700':   group.category === 'NEW',
+                      'text-blue-700':   group.category === 'IMPROVED',
+                      'text-orange-700': group.category === 'FIXED',
+                      'text-purple-700': group.category === 'STATUS'
+                    }"
+                    x-text="group.items.length">
+                  </span>
                 </div>
-              </template>
-            </div>
+                <!-- Items -->
+                <div class="px-3 pt-3 pb-1 space-y-3">
+                  <template x-for="item in group.items" :key="item.id + '-prev'">
+                    <div class="flex gap-2 pb-3 border-b border-slate-50 last:border-0">
+                      <span class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0"
+                        :class="{
+                          'bg-teal-500':   item.category === 'NEW',
+                          'bg-blue-500':   item.category === 'IMPROVED',
+                          'bg-orange-400': item.category === 'FIXED',
+                          'bg-purple-500': item.category === 'STATUS'
+                        }"></span>
+                      <div>
+                        <p class="text-xs font-bold text-slate-800 leading-snug" x-text="item.title || 'Untitled'"></p>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed" x-text="item.description"></p>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
           </div>
           <!-- Preview footer -->
           <div class="px-5 py-3 border-t border-slate-100">
@@ -2106,6 +2143,16 @@
 
         // Release Notes state
         rnItems: [],
+        get rnGroupedItems() {
+          const ORDER = ['NEW', 'IMPROVED', 'FIXED', 'STATUS'];
+          const groups = {};
+          this.rnItems.forEach(item => {
+            const cat = item.category || 'NEW';
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(item);
+          });
+          return ORDER.filter(cat => groups[cat]?.length > 0).map(cat => ({ category: cat, items: groups[cat] }));
+        },
         rnLoading: false,
         rnSaving: false,
         rnSaved: false,
@@ -2621,29 +2668,47 @@
         },
 
         rnExportPdf() {
-          const catLabel = { NEW: 'New', IMPROVED: 'Improved', FIXED: 'Fixed', STATUS: 'Status' };
-          const catColor = { NEW: '#0d9488', IMPROVED: '#2563eb', FIXED: '#ea580c', STATUS: '#7c3aed' };
-          const catBg   = { NEW: '#f0fdf9', IMPROVED: '#eff6ff', FIXED: '#fff7ed', STATUS: '#faf5ff' };
-          const itemsHtml = this.rnItems.map(item => `
-            <div style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #f1f5f9;">
-              <div style="margin-bottom:6px;">
-                <span style="display:inline-block; background:${catBg[item.category]}; color:${catColor[item.category]}; border:1px solid ${catColor[item.category]}30; border-radius:5px; padding:2px 8px; font-size:10px; font-weight:700; letter-spacing:0.04em;">${catLabel[item.category] || item.category}</span>
-              </div>
-              <div style="font-size:15px; font-weight:700; color:#1e293b; margin-bottom:4px;">${item.title || 'Untitled'}</div>
-              <div style="font-size:13px; color:#475569; line-height:1.6;">${item.description || ''}</div>
-            </div>`).join('');
+          const ORDER = ['NEW', 'IMPROVED', 'FIXED', 'STATUS'];
+          const CAT = {
+            NEW:      { label: 'New Features',   icon: '✦', dot: '#0d9488', bg: '#f0fdf9', border: '#99f6e4', headerColor: '#0f766e' },
+            IMPROVED: { label: 'Improvements',   icon: '↑', dot: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', headerColor: '#1d4ed8' },
+            FIXED:    { label: 'Fixed',           icon: '✓', dot: '#ea580c', bg: '#fff7ed', border: '#fed7aa', headerColor: '#c2410c' },
+            STATUS:   { label: 'Status Updates',  icon: '●', dot: '#7c3aed', bg: '#faf5ff', border: '#e9d5ff', headerColor: '#6d28d9' },
+          };
+          // Group items by category preserving order
+          const groups = {};
+          this.rnItems.forEach(item => {
+            const cat = item.category || 'NEW';
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(item);
+          });
+          const sectionsHtml = ORDER.filter(cat => groups[cat]?.length).map(cat => {
+            const c = CAT[cat];
+            const rows = groups[cat].map(item => `
+              <div style="display:flex;gap:10px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f8fafc;">
+                <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${c.dot};margin-top:5px;"></div>
+                <div style="flex:1;">
+                  <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:3px;">${item.title || 'Untitled'}</div>
+                  <div style="font-size:12px;color:#475569;line-height:1.65;">${item.description || ''}</div>
+                </div>
+              </div>`).join('');
+            return `
+              <div style="margin-bottom:20px;border-radius:8px;overflow:hidden;border:1px solid ${c.border};">
+                <div style="background:${c.bg};border-bottom:1px solid ${c.border};padding:9px 16px;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:${c.headerColor};text-transform:uppercase;">${c.icon}&nbsp;&nbsp;${c.label}</span>
+                  <span style="font-size:11px;font-weight:700;color:${c.headerColor};background:white;border-radius:999px;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;">${groups[cat].length}</span>
+                </div>
+                <div style="padding:16px 16px 2px;">${rows}</div>
+              </div>`;
+          }).join('');
           const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Release Notes</title>
-            <style>
-              * { box-sizing: border-box; margin: 0; padding: 0; }
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1e293b; padding: 48px; max-width: 720px; margin: 0 auto; }
-              @media print { body { padding: 24px; } @page { margin: 1cm; } }
-            </style>
+            <style>* { box-sizing:border-box;margin:0;padding:0; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#1e293b;padding:48px;max-width:680px;margin:0 auto; } @media print { body{padding:0;} @page{margin:1.5cm;} }</style>
           </head><body>
-            <div style="margin-bottom:8px; font-size:11px; font-weight:700; letter-spacing:0.08em; color:#3689FB; text-transform:uppercase;">Move Group · Customer Update</div>
-            <h1 style="font-size:28px; font-weight:800; color:#152656; margin-bottom:6px;">What's new</h1>
-            <div style="height:2px; background:#f1f5f9; margin:20px 0 28px;"></div>
-            ${itemsHtml}
-            <div style="margin-top:32px; padding-top:16px; border-top:1px solid #f1f5f9; font-size:11px; color:#94a3b8;">Move Group — powered by Alfred Travel</div>
+            <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:#3689FB;text-transform:uppercase;">Move Group · Customer Update</div>
+            <h1 style="font-size:26px;font-weight:800;color:#152656;margin-bottom:4px;">What's new</h1>
+            <div style="height:1px;background:#e2e8f0;margin:18px 0 22px;"></div>
+            ${sectionsHtml}
+            <div style="margin-top:28px;padding-top:14px;border-top:1px solid #f1f5f9;font-size:10px;color:#94a3b8;">Move Group — powered by Alfred Travel</div>
           </body></html>`;
           const w = window.open('', '_blank');
           w.document.write(html);
