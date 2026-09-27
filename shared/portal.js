@@ -58,8 +58,9 @@
       videos:    _mapApiVideos(api.videos   || []),
       scenarios: api.scenarios || [],
       meetings:  _mapApiMeetings(api.meetings || []),
-      bugsLink:    api.bugsLink    || '',
-      contactLink: api.contactLink || '',
+      bugsLink:      api.bugsLink      || '',
+      contactLink:   api.contactLink   || '',
+      releaseNotes:  api.releaseNotes  || [],
     };
   }
 
@@ -89,8 +90,9 @@
     // Meetings
     if (api.meetings && api.meetings.length) out.meetings = _mapApiMeetings(api.meetings);
     // Links
-    if (api.bugsLink)    out.bugsLink    = api.bugsLink;
-    if (api.contactLink) out.contactLink = api.contactLink;
+    if (api.bugsLink)      out.bugsLink      = api.bugsLink;
+    if (api.contactLink)   out.contactLink   = api.contactLink;
+    if (api.releaseNotes)  out.releaseNotes  = api.releaseNotes;
     return out;
   }
 
@@ -123,6 +125,7 @@
     buildScenarios(cfg);
     buildMeetings(cfg);
     buildTranslation(cfg);
+    buildChangelog(cfg);
     _applyDynamicLinks(cfg);
     initLang(cfg);
     initNav();
@@ -173,6 +176,7 @@
       { id:'scenarios',   icon:'✅', en:'Test Scenarios',   tr:'Test Senaryoları',  badge: null },
       { id:'translation', icon:'📸', en:'UI Translation',   tr:'Arayüz Çevirisi',   badge: null },
       { id:'meetings',    icon:'📅', en:'Meeting Recaps',   tr:'Toplantı Özetleri', badge: (cfg.meetings||[]).length || null },
+      { id:'changelog',   icon:'🚀', en:"What's New",       tr:'Yenilikler',         badge: (cfg.releaseNotes||[]).reduce((s,p)=>s+(p.items||[]).length,0) || null },
       { id:'feedback',    icon:'💬', en:'Feedback',         tr:'Geri Bildirim',      badge: null },
     ];
 
@@ -578,6 +582,39 @@
     iframe.src = '';
     document.body.style.overflow = '';
   };
+
+  // ─── What's New / Release Notes ────────────────
+  function buildChangelog(cfg) {
+    const container = document.getElementById('changelog-list');
+    if (!container) return;
+    const periods = cfg.releaseNotes || [];
+    if (periods.length === 0) {
+      container.innerHTML = '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:40px 0;">No release notes yet.</p>';
+      return;
+    }
+    const categoryStyle = {
+      NEW:      { bg: '#dcfce7', color: '#15803d', label: 'NEW' },
+      IMPROVED: { bg: '#dbeafe', color: '#1d4ed8', label: 'IMPROVED' },
+      FIXED:    { bg: '#ffedd5', color: '#c2410c', label: 'FIXED' },
+    };
+    container.innerHTML = periods.map(period => `
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;">
+          ${period.period || 'Release'}
+        </div>
+        ${(period.items || []).map(item => {
+          const s = categoryStyle[item.category] || categoryStyle.NEW;
+          return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #f8fafc;">
+            <span style="background:${s.bg};color:${s.color};font-size:9px;font-weight:800;letter-spacing:.07em;padding:3px 7px;border-radius:6px;white-space:nowrap;align-self:flex-start;margin-top:2px;">${s.label}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:3px;">${item.title || ''}</div>
+              ${item.description ? `<div style="font-size:12px;color:#64748b;line-height:1.5;">${item.description}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('');
+  }
 
   // ─── Screenshot Translation ────────────────────
   function buildTranslation(cfg) {
