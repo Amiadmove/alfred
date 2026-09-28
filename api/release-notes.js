@@ -4,12 +4,13 @@ const { checkAdminAuth } = require('./_auth');
 const BLOB_PATH = 'release-notes/global.json';
 
 async function readFromBlob() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) return null;
   try {
-    const { blobs } = await list({ prefix: BLOB_PATH, token: process.env.BLOB_READ_WRITE_TOKEN });
+    const { blobs } = await list({ prefix: BLOB_PATH, token });
     const blob = blobs.find(b => b.pathname === BLOB_PATH);
     if (!blob) return null;
-    const r = await fetch(blob.downloadUrl || blob.url);
+    const r = await fetch(blob.url, { headers: { Authorization: `Bearer ${token}` } });
     if (!r.ok) return null;
     return await r.json();
   } catch { return null; }
