@@ -203,6 +203,10 @@
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">Website <span style="color:#3689FB;">*</span></label>
             <input type="text" x-model="data.company.website" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. acmetravel.io" />
           </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Country / HQ Location</label>
+            <input type="text" x-model="data.company.country" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. Germany" />
+          </div>
           <div class="sm:col-span-2">
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">Registered Address <span style="color:#3689FB;">*</span></label>
             <textarea x-model="data.company.address" rows="2" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="Enter registered address"></textarea>
@@ -975,7 +979,7 @@
         ],
 
         data: {
-          company: { name: '', website: '', address: '', regNumber: '', vatNumber: '', primaryMarkets: '', appPlatforms: '' },
+          company: { name: '', website: '', country: '', address: '', regNumber: '', vatNumber: '', primaryMarkets: '', appPlatforms: '' },
           commercial: { name: '', title: '', email: '', phone: '' },
           technical: { name: '', title: '', email: '', phone: '', github: '' },
           finance: { name: '', email: '', currency: 'EUR', poRequired: '', poNumber: '' },

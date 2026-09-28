@@ -178,6 +178,14 @@
             <input type="text" x-model="d.company.address" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 123 High Street, London, UK" />
           </div>
           <div>
+            <label class="field-label">Company Reg. Number</label>
+            <input type="text" x-model="d.company.regNumber" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. 12345678" />
+          </div>
+          <div>
+            <label class="field-label">VAT Number <span class="text-slate-400 font-normal">(optional)</span></label>
+            <input type="text" x-model="d.company.vatNumber" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm" placeholder="e.g. GB123456789" />
+          </div>
+          <div>
             <label class="field-label">Company Type</label>
             <select x-model="d.company.type" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm bg-white">
               <option value="">Select...</option>
@@ -1105,7 +1113,7 @@
         ],
 
         d: {
-          company:    { name:'', website:'', country:'', type:'', logoBase64:'', logoName:'' },
+          company:    { name:'', website:'', country:'', address:'', type:'', regNumber:'', vatNumber:'', logoBase64:'', logoName:'' },
           commercial: { name:'', title:'', email:'', phone:'' },
           technical:  { name:'', title:'', email:'', phone:'' },
 
