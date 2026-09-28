@@ -371,6 +371,7 @@
           <div class="detail-row"><span class="detail-label">Company Name</span><span class="detail-value" x-text="selected?.data?.company?.name || selected?.partnerName || '—'"></span></div>
           <div class="detail-row"><span class="detail-label">Website</span><span class="detail-value" x-text="selected?.data?.company?.website || '—'"></span></div>
           <div class="detail-row"><span class="detail-label">Country</span><span class="detail-value" x-text="selected?.data?.company?.country || '—'"></span></div>
+          <div class="detail-row" x-show="selected?.data?.company?.address"><span class="detail-label">Address</span><span class="detail-value" x-text="selected?.data?.company?.address || '—'"></span></div>
           <div class="detail-row"><span class="detail-label">Type</span><span class="detail-value" x-text="selected?.data?.company?.type || '—'"></span></div>
           <div class="detail-row"><span class="detail-label">Markets</span><span class="detail-value" x-text="selected?.data?.company?.primaryMarkets || '—'"></span></div>
           <div class="detail-row"><span class="detail-label">Platforms</span><span class="detail-value" x-text="selected?.data?.company?.appPlatforms || '—'"></span></div>
@@ -382,6 +383,7 @@
             <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Company Name</label><input x-model="editData.data.company.name" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
             <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Website</label><input x-model="editData.data.company.website" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
             <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Country</label><input x-model="editData.data.company.country" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
+            <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Address</label><input x-model="editData.data.company.address" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
             <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Type</label><input x-model="editData.data.company.type" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
             <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Primary Markets</label><input x-model="editData.data.company.primaryMarkets" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
             <div><label class="text-xs text-slate-400 font-medium block mb-0.5">Reg. Number</label><input x-model="editData.data.company.regNumber" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:border-blue-400" /></div>
@@ -1438,10 +1440,10 @@
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Export JSON
               </button>
-              <button @click="rnExportPdf()" x-show="rnItems.length > 0"
+              <button @click="rnPdfSrcdoc = rnGeneratePdfHtml(); rnShowPdfPreview = true" x-show="rnItems.length > 0"
                 class="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:border-red-400 hover:text-red-500">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Export PDF
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                Preview PDF
               </button>
               <button @click="rnAddItem()"
                 class="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors" style="background:#3689FB;">
@@ -1549,6 +1551,23 @@
                   <textarea x-model="item.description" @input="rnDirty = true" rows="3"
                     placeholder="Describe what changed in plain language — customers will see this."
                     class="w-full resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 outline-none focus:border-blue-400 placeholder:text-slate-300"></textarea>
+                  <!-- Screenshots -->
+                  <div>
+                    <div x-show="item.screenshots && item.screenshots.length > 0" class="flex flex-wrap gap-2 mb-2">
+                      <template x-for="(src, si) in (item.screenshots || [])" :key="si">
+                        <div class="relative group">
+                          <img :src="src" class="h-16 w-24 object-cover rounded-md border border-slate-200" />
+                          <button @click="rnRemoveScreenshot(item, si)"
+                            class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] hidden group-hover:flex items-center justify-center leading-none">&times;</button>
+                        </div>
+                      </template>
+                    </div>
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-400 hover:text-blue-500 transition-colors">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      Add screenshot
+                      <input type="file" accept="image/*" class="hidden" @change="rnUploadScreenshot(item, $event)" />
+                    </label>
+                  </div>
                 </div>
                 <!-- Delete -->
                 <button @click="rnItems.splice(idx, 1); rnDirty = true"
@@ -1646,6 +1665,29 @@
       </div><!-- end release editor -->
 
     </div><!-- end main area -->
+
+    <!-- PDF Preview Modal -->
+    <div x-show="rnShowPdfPreview" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl shadow-2xl flex flex-col" style="width:760px;max-height:90vh;">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 shrink-0">
+          <p class="text-sm font-semibold text-slate-700">PDF Preview</p>
+          <div class="flex items-center gap-2">
+            <button @click="rnExportPdf()"
+              class="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold text-white transition-colors" style="background:#152656;">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              Print / Export PDF
+            </button>
+            <button @click="rnShowPdfPreview = false" class="text-slate-400 hover:text-slate-700 transition-colors">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- iframe preview -->
+        <iframe :srcdoc="rnPdfSrcdoc" class="flex-1 w-full rounded-b-2xl border-0" style="min-height:0;"></iframe>
+      </div>
+    </div>
 
   </div><!-- end releaseNotes view -->
 
@@ -2207,6 +2249,8 @@
         rnSaved: false,
         rnDirty: false,
         rnError: '',
+        rnShowPdfPreview: false,
+        rnPdfSrcdoc: '',
         rnShowImport: false,
         rnImportText: '',
         rnImportPreview: null,
@@ -2732,7 +2776,35 @@
         },
 
         rnAddItem() {
-          this.rnItems.unshift({ id: 'rn-' + Date.now(), category: 'NEW', title: '', description: '' });
+          this.rnItems.unshift({ id: 'rn-' + Date.now(), category: 'NEW', title: '', description: '', screenshots: [] });
+          this.rnDirty = true;
+        },
+
+        rnUploadScreenshot(item, event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          if (!item.screenshots) item.screenshots = [];
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const MAX = 800;
+              let w = img.width, h = img.height;
+              if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+              const canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              item.screenshots.push(canvas.toDataURL('image/jpeg', 0.55));
+              this.rnDirty = true;
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+          event.target.value = '';
+        },
+
+        rnRemoveScreenshot(item, idx) {
+          item.screenshots.splice(idx, 1);
           this.rnDirty = true;
         },
 
@@ -2756,7 +2828,7 @@
             if (CATEGORY_MAP[key]) { currentCategory = CATEGORY_MAP[key]; return; }
             const title = line.replace(/^[-•*]\s*/, '').trim();
             if (!title) return;
-            items.push({ id: 'rn-import-' + Date.now() + '-' + (idx++), category: currentCategory, title, description: '' });
+            items.push({ id: 'rn-import-' + Date.now() + '-' + (idx++), category: currentCategory, title, description: '', screenshots: [] });
           });
           this.rnImportPreview = items;
         },
@@ -2769,7 +2841,7 @@
           this.rnDirty = true;
         },
 
-        rnExportPdf() {
+        rnGeneratePdfHtml() {
           const ORDER = ['NEW', 'IMPROVED', 'FIXED', 'STATUS'];
           const CAT = {
             NEW:      { label: 'New Features',   icon: '✦', dot: '#0d9488', bg: '#f0fdf9', border: '#99f6e4', headerColor: '#0f766e' },
@@ -2777,7 +2849,6 @@
             FIXED:    { label: 'Fixed',           icon: '✓', dot: '#ea580c', bg: '#fff7ed', border: '#fed7aa', headerColor: '#c2410c' },
             STATUS:   { label: 'Status Updates',  icon: '●', dot: '#7c3aed', bg: '#faf5ff', border: '#e9d5ff', headerColor: '#6d28d9' },
           };
-          // Group items by category preserving order
           const groups = {};
           this.rnItems.forEach(item => {
             const cat = item.category || 'NEW';
@@ -2786,14 +2857,20 @@
           });
           const sectionsHtml = ORDER.filter(cat => groups[cat]?.length).map(cat => {
             const c = CAT[cat];
-            const rows = groups[cat].map(item => `
+            const rows = groups[cat].map(item => {
+              const screenshots = (item.screenshots || []).map(src =>
+                `<img src="${src}" style="max-width:100%;border-radius:6px;margin-top:8px;border:1px solid #e2e8f0;" />`
+              ).join('');
+              return `
               <div style="display:flex;gap:10px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f8fafc;">
                 <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${c.dot};margin-top:5px;"></div>
                 <div style="flex:1;">
                   <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:3px;">${item.title || 'Untitled'}</div>
                   <div style="font-size:12px;color:#475569;line-height:1.65;">${this.stripHtml(item.description)}</div>
+                  ${screenshots}
                 </div>
-              </div>`).join('');
+              </div>`;
+            }).join('');
             return `
               <div style="margin-bottom:20px;border-radius:8px;overflow:hidden;border:1px solid ${c.border};">
                 <div style="background:${c.bg};border-bottom:1px solid ${c.border};padding:9px 16px;display:flex;justify-content:space-between;align-items:center;">
@@ -2803,7 +2880,7 @@
                 <div style="padding:16px 16px 2px;">${rows}</div>
               </div>`;
           }).join('');
-          const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Release Notes</title>
+          return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Release Notes</title>
             <style>* { box-sizing:border-box;margin:0;padding:0; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#1e293b;padding:48px;max-width:680px;margin:0 auto; } @media print { body{padding:0;} @page{margin:1.5cm;} }</style>
           </head><body>
             <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:#3689FB;text-transform:uppercase;">Move Group · Customer Update</div>
@@ -2812,6 +2889,10 @@
             ${sectionsHtml}
             <div style="margin-top:28px;padding-top:14px;border-top:1px solid #f1f5f9;font-size:10px;color:#94a3b8;">Move Group — powered by Alfred Travel</div>
           </body></html>`;
+        },
+
+        rnExportPdf() {
+          const html = this.rnGeneratePdfHtml();
           const w = window.open('', '_blank');
           w.document.write(html);
           w.document.close();

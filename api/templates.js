@@ -3,17 +3,20 @@ const { checkAdminAuth } = require('./_auth');
 const crypto = require('crypto');
 
 const PREFIX = 'alfred-templates/';
+const TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
 module.exports = async function handler(req, res) {
   const { action, id } = req.query;
 
+  if (!TOKEN) return res.status(503).json({ ok: false, error: 'Blob not configured' });
+
   // ── GET: list all templates ──────────────────────────────────────────────
   if (req.method === 'GET' && action === 'list') {
     try {
-      const { blobs } = await list({ prefix: PREFIX });
+      const { blobs } = await list({ prefix: PREFIX, token: TOKEN });
       const templates = await Promise.all(
         blobs.map(async (blob) => {
-          const r = await fetch(blob.url);
+          const r = await fetch(blob.downloadUrl || blob.url);
           return r.json();
         })
       );
@@ -27,9 +30,9 @@ module.exports = async function handler(req, res) {
   // ── GET: fetch single template by id ────────────────────────────────────
   if (req.method === 'GET' && action === 'get' && id) {
     try {
-      const { blobs } = await list({ prefix: PREFIX + id + '.' });
+      const { blobs } = await list({ prefix: PREFIX + id + '.', token: TOKEN });
       if (!blobs.length) return res.status(404).json({ ok: false, error: 'Template not found' });
-      const r = await fetch(blobs[0].url);
+      const r = await fetch(blobs[0].downloadUrl || blobs[0].url);
       const data = await r.json();
       return res.json({ ok: true, data });
     } catch (e) {
@@ -58,10 +61,11 @@ module.exports = async function handler(req, res) {
       };
 
       await put(PREFIX + templateId + '.json', JSON.stringify(template), {
-        access: 'public',
+        access: 'private',
         contentType: 'application/json',
         addRandomSuffix: false,
         allowOverwrite: true,
+        token: TOKEN,
       });
 
       return res.json({ ok: true, id: templateId, template });
@@ -76,9 +80,9 @@ module.exports = async function handler(req, res) {
     if (!id) return res.status(400).json({ ok: false, error: 'Missing id' });
 
     try {
-      const { blobs } = await list({ prefix: PREFIX + id + '.' });
+      const { blobs } = await list({ prefix: PREFIX + id + '.', token: TOKEN });
       if (!blobs.length) return res.status(404).json({ ok: false, error: 'Template not found' });
-      await del(blobs[0].url);
+      await del(blobs[0].url, { token: TOKEN });
       return res.json({ ok: true });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message });
