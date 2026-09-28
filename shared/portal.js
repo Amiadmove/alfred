@@ -584,16 +584,24 @@
   };
 
   // ─── What's New / Release Notes ────────────────
+  function _stripHtml(html) {
+    if (!html) return '';
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return (div.textContent || div.innerText || '').trim();
+  }
+
   function buildChangelog(cfg) {
     const container = document.getElementById('changelog-list');
     if (!container) return;
     container.innerHTML = '<p style="color:#94a3b8;font-size:13px;text-align:center;padding:40px 0;">Loading…</p>';
 
     fetch('/api/release-notes')
-      .then(r => r.ok ? r.json() : { items: [] })
-      .catch(() => ({ items: [] }))
+      .then(r => r.ok ? r.json() : { releases: [], items: [] })
+      .catch(() => ({ releases: [], items: [] }))
       .then(data => {
         const items = data.items || [];
+        const releaseTitle = (data.releases && data.releases[0] && data.releases[0].title) || '';
 
         // Update nav badge
         const navBtn = document.querySelector('[data-target="changelog"] .nav-badge');
@@ -622,16 +630,23 @@
           groups[cat].push(item);
         });
 
-        container.innerHTML = ORDER.filter(cat => groups[cat]?.length).map(cat => {
+        const titleHtml = releaseTitle
+          ? `<div style="font-size:11px;font-weight:700;color:#152656;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">${_stripHtml(releaseTitle)}</div>`
+          : '';
+
+        container.innerHTML = titleHtml + ORDER.filter(cat => groups[cat]?.length).map(cat => {
           const c = CAT[cat];
-          const rows = groups[cat].map(item => `
+          const rows = groups[cat].map(item => {
+            const desc = _stripHtml(item.description);
+            return `
             <div style="display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #f8fafc;">
               <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${c.dot};margin-top:5px;"></div>
               <div style="flex:1;min-width:0;">
-                <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:3px;">${item.title || ''}</div>
-                ${item.description ? `<div style="font-size:12px;color:#475569;line-height:1.6;">${item.description}</div>` : ''}
+                <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:3px;">${_stripHtml(item.title || '')}</div>
+                ${desc ? `<div style="font-size:12px;color:#475569;line-height:1.6;">${desc}</div>` : ''}
               </div>
-            </div>`).join('');
+            </div>`;
+          }).join('');
           return `
             <div style="margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid ${c.border};">
               <div style="background:${c.bg};border-bottom:1px solid ${c.border};padding:9px 14px;display:flex;justify-content:space-between;align-items:center;">

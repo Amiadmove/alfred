@@ -1416,10 +1416,11 @@
 
           <!-- Title row + action buttons -->
           <div class="flex items-center gap-3 mb-6">
-            <input x-model="rnTitle"
+            <input x-model="rnTitle" @input="rnDirty = true"
               placeholder="Period label, e.g. Holiday Platform — September 2026"
               class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-blue-400 placeholder:font-normal placeholder:text-slate-300 shadow-sm" />
             <div class="flex items-center gap-2 shrink-0">
+              <span x-show="rnDirty && !rnSaving" class="text-xs text-amber-500 font-medium">● Unsaved</span>
               <span x-show="rnSaved" class="text-xs text-green-600 font-medium">✓ Saved</span>
               <span x-show="rnError" class="text-xs text-red-500" x-text="rnError"></span>
               <button @click="rnShowImport = !rnShowImport"
@@ -1533,7 +1534,7 @@
                       'bg-orange-400': item.category === 'FIXED',
                       'bg-purple-500': item.category === 'STATUS'
                     }"></span>
-                  <select x-model="item.category"
+                  <select x-model="item.category" @change="rnDirty = true"
                     class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-600 outline-none focus:border-blue-400">
                     <option value="NEW">New</option>
                     <option value="IMPROVED">Improved</option>
@@ -1543,32 +1544,14 @@
                 </div>
                 <!-- Content -->
                 <div class="flex-1 space-y-2 min-w-0">
-                  <input x-model="item.title" type="text" placeholder="Title, e.g. 'Faster checkout'"
+                  <input x-model="item.title" @input="rnDirty = true" type="text" placeholder="Title, e.g. 'Faster checkout'"
                     class="w-full rounded-md border border-slate-200 bg-transparent px-2 py-1 text-sm font-semibold text-slate-700 outline-none placeholder:font-normal placeholder:text-slate-300 focus:border-blue-400 focus:bg-slate-50" />
-                  <textarea x-model="item.description" rows="3"
+                  <textarea x-model="item.description" @input="rnDirty = true" rows="3"
                     placeholder="Describe what changed in plain language — customers will see this."
                     class="w-full resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 outline-none focus:border-blue-400 placeholder:text-slate-300"></textarea>
-                  <div class="flex justify-end">
-                    <span class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium"
-                      :class="{
-                        'bg-teal-50 border-teal-200 text-teal-700': item.category === 'NEW',
-                        'bg-blue-50 border-blue-200 text-blue-700': item.category === 'IMPROVED',
-                        'bg-orange-50 border-orange-200 text-orange-700': item.category === 'FIXED',
-                        'bg-purple-50 border-purple-200 text-purple-700': item.category === 'STATUS'
-                      }">
-                      <span class="w-1.5 h-1.5 rounded-full"
-                        :class="{
-                          'bg-teal-500': item.category === 'NEW',
-                          'bg-blue-500': item.category === 'IMPROVED',
-                          'bg-orange-400': item.category === 'FIXED',
-                          'bg-purple-500': item.category === 'STATUS'
-                        }"></span>
-                      <span x-text="item.category === 'NEW' ? 'New' : item.category === 'IMPROVED' ? 'Improved' : item.category === 'FIXED' ? 'Fixed' : 'Status'"></span>
-                    </span>
-                  </div>
                 </div>
                 <!-- Delete -->
-                <button @click="rnItems.splice(idx, 1)"
+                <button @click="rnItems.splice(idx, 1); rnDirty = true"
                   class="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -2222,6 +2205,7 @@
         rnLoading: false,
         rnSaving: false,
         rnSaved: false,
+        rnDirty: false,
         rnError: '',
         rnShowImport: false,
         rnImportText: '',
@@ -2699,7 +2683,7 @@
           this.rnCurrentId = release.id;
           this.rnTitle = release.title || '';
           this.rnItems = JSON.parse(JSON.stringify(release.items || []));
-          this.rnSaved = false; this.rnError = '';
+          this.rnSaved = false; this.rnDirty = false; this.rnError = '';
           this.rnShowImport = false; this.rnImportText = ''; this.rnImportPreview = null;
         },
 
@@ -2709,15 +2693,17 @@
           const release = { id, title: '', createdAt: new Date().toISOString(), items: [] };
           this.rnReleases.unshift(release);
           this.rnSelectRelease(release);
+          this.rnDirty = true;
         },
 
-        rnDeleteRelease(id) {
+        async rnDeleteRelease(id) {
           if (!confirm('Delete this release?')) return;
           this.rnReleases = this.rnReleases.filter(r => r.id !== id);
           if (this.rnCurrentId === id) {
             if (this.rnReleases.length > 0) { this.rnSelectRelease(this.rnReleases[0]); }
             else { this.rnCurrentId = null; this.rnTitle = ''; this.rnItems = []; }
           }
+          await this.saveReleaseNotes();
         },
 
         async saveReleaseNotes() {
@@ -2736,6 +2722,7 @@
               throw new Error(j.error || 'Save failed');
             }
             this.rnSaved = true;
+            this.rnDirty = false;
             setTimeout(() => this.rnSaved = false, 3000);
           } catch (e) {
             this.rnError = e.message;
@@ -2746,24 +2733,31 @@
 
         rnAddItem() {
           this.rnItems.unshift({ id: 'rn-' + Date.now(), category: 'NEW', title: '', description: '' });
+          this.rnDirty = true;
         },
 
         rnPreviewImport() {
           const text = this.rnImportText.trim();
           if (!text) { this.rnImportPreview = []; return; }
-          const blocks = text.split(/\n{2,}/);
-          const cats = { new: 'NEW', improved: 'IMPROVED', fixed: 'FIXED', status: 'STATUS' };
-          const items = blocks.map((block, i) => {
-            const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-            if (!lines.length) return null;
-            let category = 'NEW';
-            let startIdx = 0;
-            const firstLower = lines[0].toLowerCase().replace(/[^a-z]/g, '');
-            if (cats[firstLower]) { category = cats[firstLower]; startIdx = 1; }
-            const title = lines[startIdx] || '';
-            const description = lines.slice(startIdx + 1).join(' ');
-            return { id: 'rn-import-' + Date.now() + '-' + i, category, title, description };
-          }).filter(Boolean);
+          const CATEGORY_MAP = {
+            new: 'NEW', feature: 'NEW', features: 'NEW', whatsnew: 'NEW',
+            improved: 'IMPROVED', improvements: 'IMPROVED', improvement: 'IMPROVED',
+            enhancement: 'IMPROVED', enhancements: 'IMPROVED',
+            fixed: 'FIXED', fix: 'FIXED', fixes: 'FIXED',
+            bugfixed: 'FIXED', bugfix: 'FIXED', bugfixes: 'FIXED', bugs: 'FIXED',
+            status: 'STATUS', statusupdates: 'STATUS', statusupdate: 'STATUS',
+          };
+          const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+          const items = [];
+          let currentCategory = 'NEW';
+          let idx = 0;
+          lines.forEach(line => {
+            const key = line.toLowerCase().replace(/[^a-z]/g, '');
+            if (CATEGORY_MAP[key]) { currentCategory = CATEGORY_MAP[key]; return; }
+            const title = line.replace(/^[-•*]\s*/, '').trim();
+            if (!title) return;
+            items.push({ id: 'rn-import-' + Date.now() + '-' + (idx++), category: currentCategory, title, description: '' });
+          });
           this.rnImportPreview = items;
         },
 
@@ -2772,6 +2766,7 @@
           this.rnShowImport = false;
           this.rnImportText = '';
           this.rnImportPreview = null;
+          this.rnDirty = true;
         },
 
         rnExportPdf() {
@@ -2796,7 +2791,7 @@
                 <div style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:${c.dot};margin-top:5px;"></div>
                 <div style="flex:1;">
                   <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:3px;">${item.title || 'Untitled'}</div>
-                  <div style="font-size:12px;color:#475569;line-height:1.65;">${item.description || ''}</div>
+                  <div style="font-size:12px;color:#475569;line-height:1.65;">${this.stripHtml(item.description)}</div>
                 </div>
               </div>`).join('');
             return `
@@ -2850,6 +2845,7 @@
             { id: 'ex-6', category: 'FIXED', title: 'Pilot accounts — workspace & phone code issues resolved', description: 'Fixed workspace assignment and country phone code registration issues affecting pilot accounts.' },
           ];
           this.rnItems = examples.map(e => ({ ...e, id: 'rn-ex-' + Date.now() + '-' + e.id }));
+          this.rnDirty = true;
         },
 
         rnUploadJson(event) {
