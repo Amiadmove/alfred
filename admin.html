@@ -2961,7 +2961,7 @@
           this.portalSaved = false;
           this.portalError = '';
           try {
-            const res = await fetch('/api/portal-config/' + this.portalClient.id, {
+            const res = await fetch('/api/portal-config?id=' + this.portalClient.id, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json', ...this.authH() },
               body: JSON.stringify(this.portalDraft),

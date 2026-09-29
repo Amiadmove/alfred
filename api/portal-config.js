@@ -1,5 +1,5 @@
 const { put, list } = require('@vercel/blob');
-const { checkAdminAuth } = require('../_auth');
+const { checkAdminAuth } = require('./_auth');
 const fs = require('fs');
 const path = require('path');
 
@@ -38,9 +38,14 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { id } = req.query;
+  // Support both /api/portal-config?client=setur and /api/portal-config/setur
+  const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean);
+  const lastSegment = urlParts[urlParts.length - 1];
+  const id = req.query.client || req.query.id ||
+    (lastSegment !== 'portal-config' ? lastSegment : null);
+
   if (!id || !/^[a-z0-9_-]+$/i.test(id)) {
-    return res.status(400).json({ error: 'Invalid client id' });
+    return res.status(400).json({ error: 'Missing or invalid client id' });
   }
 
   // GET — public (portal reads this)
